@@ -112,3 +112,4 @@ public class VideoRecordRepository : IVideoRecordRepository
             .AnyAsync(v => v.MonitoredFolderId == folderId && v.ContentSha256 == sha256Hash, cancellationToken);
     }
 }
+

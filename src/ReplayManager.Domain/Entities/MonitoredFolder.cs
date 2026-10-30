@@ -47,3 +47,4 @@ public class MonitoredFolder : BaseEntity
     /// </summary>
     public ICollection<VideoRecord> Videos { get; set; } = new List<VideoRecord>();
 }
+

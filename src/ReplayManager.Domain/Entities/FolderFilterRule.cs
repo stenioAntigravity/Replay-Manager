@@ -57,3 +57,4 @@ public class FolderFilterRule : BaseEntity
     /// </summary>
     public bool IncludeSubdirectories { get; set; } = false;
 }
+

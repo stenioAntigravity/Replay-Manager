@@ -25,3 +25,4 @@ public enum LocalFileStatus
     /// </summary>
     Corrupted = 3
 }
+

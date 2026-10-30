@@ -15,3 +15,4 @@ public interface IMonitoredFolderRepository
     Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> ExistsPathAsync(string path, CancellationToken cancellationToken = default);
 }
+

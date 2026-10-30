@@ -114,3 +114,4 @@ public class VideoRecord : BaseEntity
     /// </summary>
     public UploadQueueItem? UploadQueueItem { get; set; }
 }
+

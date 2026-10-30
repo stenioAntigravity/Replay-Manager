@@ -23,3 +23,4 @@ public interface IVideoRecordRepository
     Task UpdateAsync(VideoRecord videoRecord, CancellationToken cancellationToken = default);
     Task<bool> ExistsInFolderAsync(Guid folderId, string sha256Hash, CancellationToken cancellationToken = default);
 }
+

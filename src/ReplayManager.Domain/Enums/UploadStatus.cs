@@ -45,3 +45,4 @@ public enum UploadStatus
     /// </summary>
     Completed = 7
 }
+

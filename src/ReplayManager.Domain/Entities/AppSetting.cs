@@ -22,3 +22,4 @@ public class AppSetting : BaseEntity
     /// </summary>
     public string? Description { get; set; }
 }
+

@@ -45,3 +45,4 @@ public enum FilterEvaluationStatus
     /// </summary>
     PendingEvaluation = 7
 }
+

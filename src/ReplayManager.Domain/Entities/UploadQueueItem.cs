@@ -74,3 +74,4 @@ public class UploadQueueItem : BaseEntity
     /// </summary>
     public string? ResumableSessionUri { get; set; }
 }
+

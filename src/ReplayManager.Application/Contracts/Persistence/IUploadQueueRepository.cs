@@ -18,3 +18,4 @@ public interface IUploadQueueRepository
     Task<int> GetMaxPriorityAsync(CancellationToken cancellationToken = default);
     Task ResetActiveUploadsToInterruptedAsync(CancellationToken cancellationToken = default);
 }
+

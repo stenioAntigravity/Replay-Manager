@@ -38,3 +38,4 @@ public class YouTubeAccount : BaseEntity
     /// </summary>
     public DateTime LastAuthenticatedAtUtc { get; set; } = DateTime.UtcNow;
 }
+

@@ -67,3 +67,4 @@ public class DatabaseInitializer
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
+

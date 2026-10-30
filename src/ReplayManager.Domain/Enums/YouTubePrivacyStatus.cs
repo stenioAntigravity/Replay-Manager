@@ -20,3 +20,4 @@ public enum YouTubePrivacyStatus
     /// </summary>
     Public = 2
 }
+

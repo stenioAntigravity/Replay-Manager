@@ -48,3 +48,4 @@ public class DatabaseInitializerTests : IDisposable
         GC.SuppressFinalize(this);
     }
 }
+

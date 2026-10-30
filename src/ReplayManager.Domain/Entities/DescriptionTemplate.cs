@@ -33,3 +33,4 @@ public class DescriptionTemplate : BaseEntity
     /// </summary>
     public bool IsDefault { get; set; } = false;
 }
+

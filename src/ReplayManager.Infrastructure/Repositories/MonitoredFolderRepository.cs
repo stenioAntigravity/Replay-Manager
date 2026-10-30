@@ -77,3 +77,4 @@ public class MonitoredFolderRepository : IMonitoredFolderRepository
             .AnyAsync(f => f.Path.ToLower() == normalizedPath, cancellationToken);
     }
 }
+
