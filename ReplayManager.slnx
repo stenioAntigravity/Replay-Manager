@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ReplayManager.App/ReplayManager.App.csproj" />
+    <Project Path="src/ReplayManager.Application/ReplayManager.Application.csproj" />
+    <Project Path="src/ReplayManager.Domain/ReplayManager.Domain.csproj" />
+    <Project Path="src/ReplayManager.Infrastructure/ReplayManager.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ReplayManager.Tests/ReplayManager.Tests.csproj" />
+  </Folder>
+</Solution>
