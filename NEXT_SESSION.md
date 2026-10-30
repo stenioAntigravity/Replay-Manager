@@ -1,64 +1,68 @@
 # Next Session Guide: Replay Manager
 
 **Data de Emissão**: 2026-10-30
-**Fase Alvo**: Fase 1 — Fundação e Persistência SQLite
+**Fase Alvo**: Fase 2 — Monitoramento de Pastas e Ingestão
 
 ---
 
 ## 1. O que já está pronto
-- Ambiente configurado com .NET 10 SDK (versão 10.0.403).
-- Repositório Git inicializado com `.gitignore`.
-- Documentos de continuidade criados na raiz:
-  - `PROJECT_CONTEXT.md`
-  - `ARCHITECTURE.md`
-  - `IMPLEMENTATION_PLAN.md`
-  - `DEVELOPMENT_STATUS.md`
-  - `DECISIONS.md`
-  - `TESTING.md`
-  - `SESSION_LOG.md`
-  - `CHANGELOG.md`
-- Estrutura de projetos da solução `ReplayManager.sln` criada e compilada com sucesso:
-  - `ReplayManager.Domain`
-  - `ReplayManager.Application`
-  - `ReplayManager.Infrastructure`
-  - `ReplayManager.App` (WPF)
-  - `ReplayManager.Tests`
+- **Fase 0 (Concluída)**:
+  - SDK .NET 10.0 (10.0.403) instalado e validado.
+  - Repositório Git configurado com branch `main`.
+  - Documentação viva de governança e arquitetura.
+  - Solução `ReplayManager.slnx` com os 5 projetos interligados.
+- **Fase 1 (Concluída e Validada)**:
+  - Entidades de domínio completas em `src/ReplayManager.Domain`.
+  - Persistência SQLite com EF Core em `src/ReplayManager.Infrastructure`.
+  - Índice único composto `(MonitoredFolderId, ContentSha256)` garantindo deduplicação intra-pasta e isolamento entre pastas distintas.
+  - Repositórios, `UnitOfWork` e injeção de dependência.
+  - Inicialização segura com WAL mode e seeding idempotente.
+  - Suíte com 9 testes automatizados com SQLite InMemory aprovados com 100% de sucesso.
+  - Compilação limpa (0 avisos, 0 erros).
 
 ---
 
 ## 2. O que precisa ser verificado antes de iniciar
-1. Confirmar o ambiente do SDK executando:
+1. Configuração do ambiente .NET 10:
    ```powershell
    $env:DOTNET_ROOT = "C:\Users\steni\AppData\Local\Microsoft\dotnet"; $env:PATH = "$env:DOTNET_ROOT;$env:PATH"
    dotnet --version
    ```
-2. Verificar o status do Git (`git status`) e compilação inicial (`dotnet build ReplayManager.sln`).
-3. Ler `DEVELOPMENT_STATUS.md` e `DECISIONS.md` para relembrar as regras de negócio e persistência.
+2. Execução dos testes existentes para validação do estado:
+   ```powershell
+   dotnet test ReplayManager.slnx
+   ```
+3. Status do repositório Git (`git status`).
 
 ---
 
-## 3. Qual tarefa deve ser executada em seguida (Fase 1)
-Implementar as entidades e a camada de persistência com SQLite e EF Core:
-1. No `ReplayManager.Domain`:
-   - `MonitoredFolder` (Id, Path, Name, IsActive, AutoUploadEnabled, CreatedAt).
-   - `FolderFilterRule` (Id, MonitoredFolderId, AllowedExtensions, MinSizeBytes, MaxSizeBytes, MinDurationSeconds, MaxDurationSeconds, NamePatternRegex, IncludeSubdirectories).
-   - `VideoRecord` (Id, MonitoredFolderId, FilePath, FileName, ContentSha256, FileSizeBytes, DurationSeconds, ResolutionWidth, ResolutionHeight, RecordedAt, LocalStatus, UploadStatus, FilterStatus, RejectionReason, ThumbnailPath, YouTubeVideoId, YouTubeUrl).
-   - `UploadQueueItem` (Id, VideoRecordId, Priority, Status, BytesUploaded, TotalBytes, UploadSpeedBytesPerSec, AttemptCount, LastError, QueuedAt, StartedAt, CompletedAt, ResumableSessionUri).
-   - `YouTubeAccount` (Id, ChannelId, ChannelTitle, EncryptedToken, IsActive, LastAuthenticatedAt).
-   - `DescriptionTemplate` (Id, MonitoredFolderId, Name, TemplateContent, IsDefault).
+## 3. Qual tarefa deve ser executada em seguida (Fase 2)
+Implementar o motor de **Monitoramento de Pastas e Ingestão**:
+1. No `ReplayManager.Application`:
+   - Interfaces `IFileStabilityChecker`, `IFileWatcherService`, `IContentHasher`.
+   - Eventos de domínio / DTOs de arquivos detectados.
 2. No `ReplayManager.Infrastructure`:
-   - Instalar pacotes NuGet necessários: `Microsoft.EntityFrameworkCore.Sqlite`, `Microsoft.EntityFrameworkCore.Design`.
-   - Criar `ReplayManagerDbContext` com Fluent API, chaves compostas e índices (especialmente índice único `(MonitoredFolderId, ContentSha256)`).
-   - Configurar SQLite WAL mode e geração automática do banco de dados na inicialização.
+   - Implementar `FileStabilityChecker`:
+     - Polling de tamanho com intervalo de estabilidade (ex: 3 a 5 segundos sem alteração de bytes).
+     - Teste de abertura não bloqueante com `FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None)` para garantir que a gravação do OBS/PUBG terminou.
+   - Implementar `FileSystemWatcherService`:
+     - Monitoramento de eventos `Created`, `Changed`, `Renamed`.
+     - Debounce de eventos para evitar disparos repetidos.
+     - Suporte a múltiplas instâncias de pastas simultâneas.
+   - Implementar `Sha256ContentHasher`:
+     - Streaming de leitura assíncrona com `SHA256.Create()` sem carregar arquivos gigantes na memória RAM.
+   - Implementar `FolderReconciliationWorker`:
+     - Varredura periódica em background (ex: a cada 60 segundos ou configurável) para reconciliar o diretório físico com o banco SQLite, capturando arquivos que possam ter sido perdidos por estouro de buffer do `FileSystemWatcher`.
 3. No `ReplayManager.Tests`:
-   - Adicionar testes de persistência com SQLite InMemory validando a integridade das entidades e da regra de duplicatas por pasta.
+   - Testes unitários para o cálculo de hash em streaming.
+   - Testes assíncronos de detecção de término de gravação simulando escrita concorrente.
 
 ---
 
 ## 4. Quais arquivos devem ser consultados
-- `ARCHITECTURE.md` (Seção 3 - Componentes e Diagrama de Camadas).
-- `DECISIONS.md` (ADR 003 e ADR 005 sobre deduplicação e filtros).
-- `PROJECT_CONTEXT.md` (Seção 2 e 3 sobre persistência e entidades).
+- `ARCHITECTURE.md` (Seção 4.1: Diagrama de sequência de detecção e ingestão).
+- `DECISIONS.md` (ADR 003 e ADR 004 sobre estabilidade de arquivos e deduplicação).
+- `PROJECT_CONTEXT.md` (Seção 5: Monitoramento de Pastas).
 
 ---
 
@@ -66,6 +70,6 @@ Implementar as entidades e a camada de persistência com SQLite e EF Core:
 Executar:
 ```powershell
 $env:DOTNET_ROOT = "C:\Users\steni\AppData\Local\Microsoft\dotnet"; $env:PATH = "$env:DOTNET_ROOT;$env:PATH"
-dotnet test
+dotnet test ReplayManager.slnx
 ```
-Validar se todos os testes unitários de persistência e validação passam com sucesso.
+Garantir que todos os testes passem com 100% de sucesso.

@@ -1,7 +1,7 @@
 # Development Status: Replay Manager
 
-**Última Atualização**: 2026-10-30 15:25 (Fase 0 Concluída)
-**Versão Atual**: 0.1.0-alpha.0
+**Última Atualização**: 2026-10-30 18:53 (Fase 1 Concluída)
+**Versão Atual**: 0.2.0-alpha.1
 
 ---
 
@@ -10,8 +10,8 @@
 | Fase | Descrição | Status | Progresso |
 | :--- | :--- | :--- | :--- |
 | **Fase 0** | Preparação do Ambiente e Estrutura Inicial | **Concluída** | 100% |
-| **Fase 1** | Fundação e Persistência SQLite | **Próxima** | 0% |
-| **Fase 2** | Monitoramento de Pastas e Ingestão | Pendente | 0% |
+| **Fase 1** | Fundação e Persistência SQLite | **Concluída** | 100% |
+| **Fase 2** | Monitoramento de Pastas e Ingestão | **Próxima** | 0% |
 | **Fase 3** | Integração FFmpeg e Miniaturas | Pendente | 0% |
 | **Fase 4** | Biblioteca de Vídeos e Interface WPF | Pendente | 0% |
 | **Fase 5** | Motor de Filtros e Automação PUBG | Pendente | 0% |
@@ -23,47 +23,57 @@
 
 ---
 
-## 2. Detalhamento do Estado Atual (Fase 0 - 100% Concluída)
+## 2. Detalhamento do Estado Atual (Fase 1 - 100% Concluída)
 
 ### Módulos Concluídos
-- [x] Avaliação detalhada dos requisitos funcionais, técnicos e regras de continuidade.
-- [x] Identificação de riscos técnicos (UAC em instaladores, limitação de APIs e concorrência).
-- [x] Instalação do .NET 10 SDK (v10.0.403) via script oficial `dotnet-install.ps1` no perfil de usuário.
-- [x] Configuração de variáveis de ambiente (`DOTNET_ROOT` e `PATH`).
-- [x] Inicialização do repositório Git com branch `main` e `.gitignore` completo.
-- [x] Criação da solução `ReplayManager.slnx` contendo 5 projetos:
-  - `src/ReplayManager.Domain` (net10.0)
-  - `src/ReplayManager.Application` (net10.0)
-  - `src/ReplayManager.Infrastructure` (net10.0-windows)
-  - `src/ReplayManager.App` (WPF, net10.0-windows)
-  - `tests/ReplayManager.Tests` (xUnit, net10.0-windows)
-- [x] Estabelecimento do grafo de dependências entre projetos sem dependências circulares.
-- [x] Compilação da solução com sucesso (0 erros, 0 avisos).
-- [x] Execução de testes de fumaça (xUnit) com 100% de aprovação.
-- [x] Documentação de continuidade viva e completa (`PROJECT_CONTEXT.md`, `ARCHITECTURE.md`, `IMPLEMENTATION_PLAN.md`, `DECISIONS.md`, `TESTING.md`, `SESSION_LOG.md`, `CHANGELOG.md`, `NEXT_SESSION.md`).
+- [x] Modelagem das entidades e enums de Domínio em `src/ReplayManager.Domain`:
+  - `BaseEntity`
+  - `MonitoredFolder`
+  - `FolderFilterRule`
+  - `VideoRecord`
+  - `UploadQueueItem`
+  - `YouTubeAccount`
+  - `DescriptionTemplate`
+  - `AppSetting`
+  - Enums: `LocalFileStatus`, `UploadStatus`, `YouTubePrivacyStatus`, `FilterEvaluationStatus`.
+- [x] Configuração de Persistência com SQLite e EF Core 10.0.14 em `src/ReplayManager.Infrastructure`:
+  - `ReplayManagerDbContext` com Fluent API completa.
+  - **Índice Único Composto de Deduplicação**: `IX_Videos_MonitoredFolderId_ContentSha256` (deduplicação por hash estritamente restrita à mesma pasta; pastas diferentes permitem o mesmo hash).
+  - Índices para filtros rápidos: `UploadStatus`, `LocalStatus`, `FilterStatus`, `RecordedAtUtc`.
+  - Índice composto para fila sequencial: `(Status, Priority, QueuedAtUtc)`.
+  - Configuração de WAL mode, synchronous=NORMAL e foreign_keys=ON em `DatabaseInitializer`.
+  - Seeding de configurações padrão do sistema e modelo padrão de descrição.
+- [x] Contratos e Repositórios em `ReplayManager.Application` e `ReplayManager.Infrastructure`:
+  - `IVideoRecordRepository` / `VideoRecordRepository`
+  - `IMonitoredFolderRepository` / `MonitoredFolderRepository`
+  - `IUploadQueueRepository` / `UploadQueueRepository` (incluindo `ResetActiveUploadsToInterruptedAsync` para recuperação pós-queda)
+  - `IUnitOfWork` / `UnitOfWork`
+  - Extensão `AddInfrastructurePersistence` para DI.
+- [x] Resolução de ambiguidade de namespace em WPF (`System.Windows.Application`).
+- [x] Suíte de testes automatizados com SQLite In-Memory em `tests/ReplayManager.Tests/Persistence`:
+  - 9 testes implementados, 9 aprovados com 100% de sucesso.
 
 ### Módulos Em Andamento / Próxima Sessão
-- **Fase 1 — Fundação e Persistência SQLite**:
-  - Modelagem das entidades de Domínio no `ReplayManager.Domain`.
-  - Instalação e configuração do EF Core SQLite e migrações no `ReplayManager.Infrastructure`.
-  - Implementação do isolamento de deduplicação por pasta.
-  - Testes unitários e de integração de persistência no `ReplayManager.Tests`.
+- **Fase 2 — Monitoramento de Pastas e Ingestão**:
+  - Implementar o serviço de monitoramento com `FileSystemWatcher`.
+  - Desenvolver o `FileStabilityInspector` para verificar estabilidade de tamanho e ausência de lock de gravação.
+  - Implementar cálculo de hash SHA-256 em streaming.
+  - Implementar motor de reconciliação periódica de diretórios (timer).
 
 ---
 
 ## 3. Problemas Conhecidos e Mitigações
 
-1. **Tentativa de instalação via Winget**: Falhou com código 50 por exigir elevação UAC.
-   - *Status*: Resolvido via `dotnet-install.ps1` user-level.
-2. **Incompatibilidade de TFM no projeto de testes**: Inicialmente o projeto de testes estava em `net10.0` e `ReplayManager.Infrastructure` em `net10.0-windows`.
-   - *Status*: Resolvido ajustando `ReplayManager.Tests` para `net10.0-windows`.
-3. **Disponibilidade do FFmpeg**: FFmpeg global não está no PATH.
-   - *Ação*: Na Fase 3 será provido provisionamento automático / gerenciamento de binário local.
+1. **Ambiguidade de namespace `Application` em WPF**: O namespace `ReplayManager.Application` colidiu com `System.Windows.Application` em `App.xaml.cs`.
+   - *Status*: Resolvido tipando explicitamente como `System.Windows.Application`.
+2. **Crash/queda de energia com uploads em andamento**:
+   - *Mitigação*: Implementado método `ResetActiveUploadsToInterruptedAsync()` no `UploadQueueRepository`, executado na inicialização para recuperar itens deixados em `Uploading`/`Preparing`.
 
 ---
 
 ## 4. Última Etapa Validada
-- `dotnet build ReplayManager.slnx` (0 avisos, 0 erros) e `dotnet test ReplayManager.slnx` (100% aprovado).
+- `dotnet test ReplayManager.slnx`: 9 testes executados, 9 aprovados, 0 falhas.
+- `dotnet build ReplayManager.slnx`: 0 erros, 0 avisos.
 
 ## 5. Próxima Tarefa Exata
-- Iniciar a **Fase 1**: criar as classes de entidade do domínio (`MonitoredFolder`, `FolderFilterRule`, `VideoRecord`, `UploadQueueItem`, `YouTubeAccount`, `DescriptionTemplate`) e configurar o `ReplayManagerDbContext` com Fluent API no `ReplayManager.Infrastructure`.
+- Iniciar a **Fase 2**: Implementar `IFileWatcherService` e `IFileStabilityChecker` na camada `Application`, com implementação concreta em `ReplayManager.Infrastructure/FileSystem/` e testes com arquivos assíncronos em `ReplayManager.Tests`.

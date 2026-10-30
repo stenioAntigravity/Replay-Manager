@@ -184,3 +184,4 @@ sequenceDiagram
    - Minimizar para bandeja e continuar executando.
    - Fechar janela mantendo serviço de background.
    - Encerrar completamente (com aviso se houver upload ativo e garantia de cancelamento limpo com persistência de checkpoint).
+

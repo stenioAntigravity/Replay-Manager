@@ -177,3 +177,4 @@ flowchart TD
   - [ ] Publicação do aplicativo no formato Single-File ou Self-Contained.
   - [ ] Criação de documentação de usuário final e guia de configuração das credenciais Google.
 - **Critério de Aceite**: Aplicação estável, sem memory leaks nem travamentos na UI, pronta para uso em produção.
+

@@ -48,3 +48,4 @@ O software monitora diretórios locais, indexa vídeos em um catálogo SQLite pe
 - **Não Concorrência Prematura em Uploads**: Um upload por vez garantido por semáforo e estado persistido.
 - **Zero Deleção Automática**: Nenhum arquivo de vídeo do usuário é deletado sem ação explícita manual.
 - **Integridade Offline**: O sistema é 100% utilizável localmente sem conexão com a internet. Falhas na nuvem não bloqueiam nem corrompem a biblioteca local.
+

@@ -87,3 +87,4 @@ Este arquivo registra as decisões arquiteturais e técnicas tomadas para o **Re
 - **Decisão**: Cifrar os tokens usando `ProtectedData.Protect` com escopo `DataProtectionScope.CurrentUser`. Apenas a conta de usuário atual do Windows consegue decifrar os dados.
 - **Alternativas Descartadas**: Tokens em JSON plano no SQLite ou em App.config.
 - **Consequências**: Conformidade com boas práticas de segurança desktop no Windows.
+
