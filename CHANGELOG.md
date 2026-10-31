@@ -132,3 +132,36 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
   - `SESSION_LOG.md`
   - `NEXT_SESSION.md`
 - SoluÃ§Ã£o `ReplayManager.slnx` com 5 projetos modulares compilando sem erros.
+
+## [0.7.0-alpha.6] - 2026-10-31 (Fase 6)
+
+### Added
+- **Proteção e Armazenamento Seguro de Credenciais**:
+  - `DpapiCredentialStorage`: persistência encriptada de segredos e tokens OAuth via Windows Data Protection API (DPAPI) com escopo `DataProtectionScope.CurrentUser`.
+- **Autenticação e Perfil de Canal do YouTube**:
+  - `IYouTubeAuthService` e `YouTubeAuthService`: fluxo OAuth 2.0 via `GoogleWebAuthorizationBroker` com escopos `youtube.upload` e `youtube.readonly`.
+  - Obtenção do perfil do canal (`YouTubeChannelProfile`) com títulos, IDs e avatares, além de expiração e desconexão segura.
+- **Metadados Padronizados e Descrições Dinâmicas**:
+  - `ITitleFormatter` e `TitleFormatter`: extração determinística de timestamps no formato canônico `"PUBG Replay - DD/MM/AAAA - HH:MM:SS"`.
+  - `IDescriptionTemplateEngine` e `DescriptionTemplateEngine`: renderização dinâmica de descrições substituindo variáveis ({FileName}, {Date}, {Time}, {DateTime}, {Duration}, {Resolution}, {FileSize}, {FolderName}).
+- **Upload Resumable do YouTube e Gerenciamento**:
+  - `IYouTubeUploader` e `YouTubeUploader`: streaming resumable em blocos de 1 MB via `ResumableUpload<Video>`, privacidade padrão "Não listado" (`unlisted`), upload opcional de miniatura customizada e atualização de metadados (`videos.update`).
+  - `IUploadQueueProcessor` e `UploadQueueProcessor`: processamento sequencial de itens pendentes na fila de upload com atualização de estados (`Completed` e `Failed`).
+- **Suíte de Testes Automatizados**:
+  - 12 novos testes automatizados no namespace `ReplayManager.Tests.YouTube` (`TitleFormatterTests`, `DescriptionTemplateEngineTests`, `DpapiCredentialStorageTests`, `YouTubeUploaderTests`, `UploadQueueProcessorTests`), totalizando 81 testes aprovados (100% de sucesso).
+
+## [0.8.0-alpha.7] - 2026-10-31 (Fase 7)
+
+### Added
+- **Serviço de Gerenciamento da Fila de Upload**:
+  - `IUploadQueueService` e `UploadQueueService`: gerenciamento de itens (enfileiramento, pausa, retomada, cancelamento, reordenação de prioridade e retry manual) com eventos reativos `ProgressUpdated` e `StatusChanged`.
+- **Bandwidth Throttling (Limitador de Velocidade de Envio)**:
+  - `ThrottledStream` em `ReplayManager.Infrastructure.YouTube`: controle preciso da taxa de transferência em bytes por segundo para uploads em streaming.
+- **Processamento de Fila e Serviço Hospedado**:
+  - `UploadQueueProcessor`: orquestração sequencial com cálculo de velocidade em tempo real e persistência imediata no SQLite via UnitOfWork.
+  - `UploadQueueBackgroundService`: execução contínua em segundo plano via `BackgroundService` registrado no container de DI.
+- **Interface Gráfica WPF da Fila de Upload**:
+  - `UploadQueueViewModel` e `UploadQueueItemViewModel`: visualização reativa de itens, progresso percentual, velocidades em bytes/s e ações de pausa/retomada/cancelamento.
+  - `UploadQueueView.xaml`: visualização rica em Dark Theme integrada à aba "Fila de Upload" na janela principal (`MainWindow.xaml`).
+- **Suíte de Testes Automatizados**:
+  - 5 novos testes automatizados em `UploadQueueServiceTests` cobrindo enfileiramento, pausa, retomada, cancelamento com reset de status e controle de taxa de transferência via `ThrottledStream`, totalizando 86 testes aprovados (100% de sucesso).

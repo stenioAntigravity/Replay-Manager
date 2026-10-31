@@ -1,7 +1,7 @@
-# Development Status: Replay Manager
+﻿# Development Status: Replay Manager
 
-**Última Atualização**: 2026-10-31 02:30 (Fase 5 Concluída)  
-**Versão Atual**: 0.6.0-alpha.5
+**Última Atualização**: 2026-10-31 13:35 (Fase 7 Concluída)  
+**Versão Atual**: 0.8.0-alpha.7
 
 ---
 
@@ -15,15 +15,15 @@
 | **Fase 3** | Integração FFmpeg e Miniaturas | **Concluída** | 100% |
 | **Fase 4** | Biblioteca de Vídeos e Interface WPF | **Concluída** | 100% |
 | **Fase 5** | Motor de Filtros e Automação PUBG | **Concluída** | 100% |
-| **Fase 6** | Integração YouTube API v3 | **Próxima** | 0% |
-| **Fase 7** | Fila Persistente e Resiliente de Upload | Pendente | 0% |
-| **Fase 8** | Backup no Google Drive | Pendente | 0% |
+| **Fase 6** | Integração YouTube API v3 | **Concluída** | 100% |
+| **Fase 7** | Fila Persistente e Resiliente de Upload | **Concluída** | 100% |
+| **Fase 8** | Backup no Google Drive | **Próxima** | 0% |
 | **Fase 9** | Bandeja, Inicialização e Acabamento | Pendente | 0% |
 | **Fase 10** | Validação, Estresse e Empacotamento | Pendente | 0% |
 
 ---
 
-## 2. Detalhamento do Estado Atual (Fase 5 - 100% Concluída)
+## 2. Detalhamento do Estado Atual (Fase 7 - 100% Concluída)
 
 ### Módulos Concluídos
 - [x] **Fase 1 — Fundação e Persistência SQLite**:
@@ -41,44 +41,50 @@
   - MVVM com CommunityToolkit, casca Dark Theme em abas, grade virtualizada, busca em tempo real, badges de status, painel de detalhes, `MediaPlayerLauncher` (VLC/padrão) e diálogos nativos.
   - 5 testes automatizados adicionados.
 - [x] **Fase 5 — Motor de Filtros e Automação PUBG**:
-  - **Motor de Filtros Determinístico**:
-    - `IFilterEvaluator` e `FilterEvaluator` em `ReplayManager.Application`:
-      - Avaliação de extensões permitidas (`AllowedExtensions`, default `.mp4;.mkv;.avi`).
-      - Avaliação de tamanho mínimo (`MinSizeBytes`, default 10 MB) e tamanho máximo opcional (`MaxSizeBytes`, default 100 MB, toggle `IsMaxSizeEnabled`).
-      - Avaliação de duração mínima e máxima em segundos (`MinDurationSeconds`, `MaxDurationSeconds`).
-      - Validação de expressões regulares / padrão no nome do arquivo (`NamePatternRegex`).
-      - Validação de diretório raiz vs subpastas (`IncludeSubdirectories`).
-    - DTO de resultado estruturado `FilterEvaluationResult` com status enumerado e mensagem descritiva amigável.
-  - **Fluxo de Automação Integrado**:
-    - Integração de `IFilterEvaluator` no `VideoMediaProcessor`:
-      - Imediatamente após extrair metadados técnicos e gerar a miniatura, o vídeo é submetido às regras de filtro da sua pasta proprietária.
-      - O resultado é salvo no registro (`FilterStatus` e `RejectionReason`).
-      - Se a pasta monitorada possuir `AutoUploadEnabled = true` (ex: pasta de replays/destaques do PUBG) e o vídeo for aprovado, ele é automaticamente enfileirado na fila de uploads (`UploadQueueItem`) com prioridade e status `Queued`.
-  - **Injeção de Dependências**:
-    - Registro de `IFilterEvaluator` no container de injeção em `AddInfrastructureFFmpeg()`.
+  - `IFilterEvaluator` e `FilterEvaluator` em `ReplayManager.Application`.
+  - Avaliação de extensões permitidas, faixas de tamanho min/max, duração min/max, expressões regulares no nome e subpastas.
+  - Auto-enfileiramento integrado no `VideoMediaProcessor` quando `AutoUploadEnabled = true`.
+  - 11 testes automatizados adicionados.
+- [x] **Fase 6 — Integração YouTube API v3**:
+  - `DpapiCredentialStorage` para armazenamento seguro de credenciais via Windows DPAPI.
+  - `YouTubeAuthService` OAuth 2.0 com `GoogleWebAuthorizationBroker` e perfil do canal.
+  - `TitleFormatter` canônico PUBG e `DescriptionTemplateEngine` com variáveis dinâmicas.
+  - `YouTubeUploader` com suporte a uploads resumable e miniaturas.
+  - 12 testes automatizados adicionados.
+- [x] **Fase 7 — Fila Persistente e Resiliente de Upload**:
+  - **Serviço de Fila Sequencial e Resiliente**:
+    - `IUploadQueueService` e `UploadQueueService`: operações completas de enfileiramento, pausa, retomada, cancelamento, reordenação de prioridade e retry manual com eventos em tempo real (`ProgressUpdated`, `StatusChanged`).
+  - **Bandwidth Throttling (Limitador de Velocidade)**:
+    - `ThrottledStream` limitando a taxa de bytes transmitidos por segundo em streaming contínuo.
+  - **Processamento de Fila e Hosted Background Service**:
+    - `UploadQueueProcessor` processando estritamente 1 vídeo por vez, calculando velocidade instantânea e persistindo checkpoints de transição de estado no SQLite com `UnitOfWork`.
+    - `UploadQueueBackgroundService` executando como `IHostedService` em segundo plano para ciclo contínuo de uploads.
+  - **Interface WPF da Fila de Upload**:
+    - `UploadQueueViewModel` e `UploadQueueItemViewModel` gerenciando lista reativa, porcentagens, tamanhos legíveis, velocidades instantâneas e comandos de item.
+    - `UploadQueueView.xaml` integrada na casca principal (`MainWindow.xaml`) com Dark Theme, miniatura, barra de progresso e botões operacionais.
   - **Suíte de Testes Automatizados**:
-    - 9 testes unitários em `FilterEvaluatorTests` cobrindo todas as permutações de regras de corte.
-    - 2 testes de integração em `VideoMediaProcessorAutomationTests` simulando o fluxo de aprovação com auto-enfileiramento e reprovação documentada.
-    - Total de 69 testes automatizados na solução (100% de sucesso).
+    - `UploadQueueServiceTests` (5 cenários de enfileiramento, pausa, retomada, cancelamento e limitação de taxa via `ThrottledStream`).
+    - Total de 86 testes automatizados aprovados (100% de sucesso).
 
 ### Módulos Em Andamento / Próxima Sessão
-- **Fase 6 — Integração YouTube API v3**:
-  - Autenticação OAuth 2.0 com `GoogleWebAuthorizationBroker` e armazenamento seguro de tokens via Windows DPAPI.
-  - Gerador de títulos automáticos (`PUBG Replay - DD/MM/AAAA - HH:MM:SS`) e templates de descrição dinâmicos.
-  - Resumable upload de vídeo para YouTube com privacidade padrão "Não listado" (`unlisted`).
+- **Fase 8 — Backup no Google Drive**:
+  - Clonagem atômica do SQLite em tempo de execução via `SqliteConnection.BackupDatabase` (sem interromper leituras ou escritas ativas).
+  - Integração com Google Drive API v3 (pasta do aplicativo ou AppData folder no Drive).
+  - Versionamento e retenção dos últimos N backups configurável.
+  - Rotina de verificação de integridade pós-upload (`PRAGMA integrity_check` no arquivo antes de enviar).
 
 ---
 
 ## 3. Problemas Conhecidos e Mitigações
 
-1. **Subpastas não autorizadas**: O `FilterEvaluator` compara o caminho canônico do diretório do arquivo com o diretório base da pasta cadastrada, rejeitando subdiretórios se `IncludeSubdirectories = false`.
-2. **Regex inválido informado pelo usuário**: Capturado com `try/catch (ArgumentException)` no avaliador para evitar interrupção do pipeline de processamento de mídia.
+1. **Dispatcher na UI**: Eventos de progresso disparados por threads de background no `IUploadQueueService` são despachados de forma segura para o thread de UI via `System.Windows.Application.Current.Dispatcher.Invoke`.
+2. **Throttling de Banda**: Implementado no nível do `Stream` transmitido, garantindo compatibilidade direta com qualquer classe consumidora de stream (incluindo `ResumableUpload` da Google API) sem acoplamentos de rede de baixo nível.
 
 ---
 
 ## 4. Última Etapa Validada
-- `dotnet test ReplayManager.slnx`: 69 testes executados, 69 aprovados, 0 falhas (100% de sucesso).
+- `dotnet test ReplayManager.slnx`: 86 testes executados, 86 aprovados, 0 falhas (100% de sucesso).
 - `dotnet build ReplayManager.slnx`: 0 erros, 0 avisos.
 
 ## 5. Próxima Tarefa Exata
-- Iniciar a **Fase 6**: Implementar serviços de autenticação OAuth 2.0 do Google/YouTube (`IYouTubeAuthService`), proteção de tokens via Windows DPAPI, gerador de títulos automáticos PUBG e upload resumable com metadados do vídeo.
+- Iniciar a **Fase 8**: Implementar clonagem atômica do banco de dados SQLite via API nativa de backup (`ISqliteBackupService`), serviço de sincronização com Google Drive API v3 (`IGoogleDriveBackupService`) e rotina de validação de integridade do arquivo de backup.

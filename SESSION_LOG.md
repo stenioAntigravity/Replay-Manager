@@ -256,3 +256,49 @@ Este log documenta o histÃ³rico de sessÃµes de desenvolvimento com escopo execut
 
 ### 5. PrÃ³xima Etapa
 - **Fase 3**: IntegraÃ§Ã£o FFmpeg e Miniaturas (localizaÃ§Ã£o de binÃ¡rios FFmpeg/FFprobe, extraÃ§Ã£o de metadados de vÃ­deo, geraÃ§Ã£o de thumbnail no percentual seguro de 15% e cache local de miniaturas).
+
+## Sessão 07 — 2026-10-31 (Fase 6: Integração YouTube API v3 Concluída)
+
+### 1. Escopo e Objetivos da Sessão
+- Conclusão e homologação da Fase 6:
+  - Resolução de dependências ausentes (`Microsoft.Extensions.Hosting.Abstractions`).
+  - Ajuste de imports e registros de injeção de dependência (`DependencyInjection.cs`).
+  - Correção e enriquecimento dos testes automatizados de upload e processamento da fila.
+- Validação completa de compilabilidade e testes sem quebras.
+
+### 2. Ações Executadas
+- Adição da referência do pacote `Microsoft.Extensions.Hosting.Abstractions` ao projeto `ReplayManager.Infrastructure`.
+- Correção de `DependencyInjection.cs` para incluir o namespace correto `ReplayManager.Application.Services`.
+- Correção de `YouTubeUploaderTests.cs` inicializando instâncias simuladas de formatadores e validação de casos de arquivo ausente e conta não autenticada.
+- Criação de `UploadQueueProcessorTests.cs` validando processamento de fila vazia, sucesso com marcação `Completed` e falha documentada com marcação `Failed`.
+- Execução de 81 testes automatizados (100% aprovados, 0 falhas).
+- Atualização integral dos documentos de continuidade (`DEVELOPMENT_STATUS.md`, `IMPLEMENTATION_PLAN.md`, `CHANGELOG.md`, `TESTING.md`, `SESSION_LOG.md`, `NEXT_SESSION.md`).
+
+### 3. Resultados de Validação
+- `dotnet build ReplayManager.slnx`: 0 erros, 0 avisos.
+- `dotnet test ReplayManager.slnx`: 81 testes executados, 81 aprovados (100% de sucesso).
+
+## Sessão 08 — 2026-10-31 (Fase 7: Fila Persistente e Resiliente de Upload Concluída)
+
+### 1. Escopo e Objetivos da Sessão
+- Implementar a **Fase 7**:
+  - `IUploadQueueService` e `UploadQueueService` em `ReplayManager.Application`.
+  - `ThrottledStream` para limitação de banda de upload em `ReplayManager.Infrastructure`.
+  - Integração de cálculo de velocidade, relatório de progresso e persistência transacional com `UnitOfWork` em `UploadQueueProcessor`.
+  - `UploadQueueBackgroundService` operando continuamente em segundo plano.
+  - Interface WPF dedicada: `UploadQueueViewModel`, `UploadQueueItemViewModel` e `UploadQueueView.xaml` com integração na janela principal `MainWindow.xaml`.
+  - Testes unitários cobrindo as operações da fila e throttling de banda.
+
+### 2. Ações Executadas
+- Criação de `IUploadQueueService` e implementação em `UploadQueueService`.
+- Implementação de `ThrottledStream` como decorador de `Stream` com limitação ajustável em bytes/s.
+- Atualização de `YouTubeUploader` e `UploadQueueProcessor` para suportar throttling e despachar notificações de progresso em tempo real.
+- Registro completo no container de injeção de dependência (`DependencyInjection.cs` e `App.xaml.cs`).
+- Criação da View WPF `UploadQueueView.xaml` e ViewModels associados.
+- Criação da suíte `UploadQueueServiceTests.cs` (5 novos testes).
+- Execução de 86 testes automatizados (100% de sucesso).
+- Atualização completa dos documentos de continuidade.
+
+### 3. Resultados de Validação
+- `dotnet build ReplayManager.slnx`: 0 erros, 0 avisos.
+- `dotnet test ReplayManager.slnx`: 86 testes executados, 86 aprovados (100% de sucesso).

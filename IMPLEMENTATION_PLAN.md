@@ -117,11 +117,11 @@ flowchart TD
 - **Objetivo**: Autenticação Google e upload confiável com controle de privacidade.
 - **Tarefas**:
   - [ ] Investigação aprofundada de requisitos da API do YouTube (projetos unverified e escopos `youtube.upload`).
-  - [ ] Implementar fluxo OAuth 2.0 (GoogleWebAuthorizationBroker / Custom loopback redirect) com credenciais salvas de forma segura via Windows DPAPI.
-  - [ ] Interface de status da conta: exibe nome do canal, ID do canal, thumbnail da conta e botão de desconectar.
+  - [x] Implementar fluxo OAuth 2.0 (GoogleWebAuthorizationBroker / Custom loopback redirect) com credenciais salvas de forma segura via Windows DPAPI.
+  - [x] Interface de status da conta: exibe nome do canal, ID do canal, thumbnail da conta e botão de desconectar.
   - [ ] Implementar gerador de títulos automáticos (`PUBG Replay - DD/MM/AAAA - HH:MM:SS`) extraindo timestamp do arquivo ou nome original.
   - [ ] Implementar templates de descrição com variáveis dinâmicas.
-  - [ ] Implementar upload resumable via `ResumableUpload<Video>` com tratamento de privacidade padrão "Não listado" (`unlisted`).
+  - [x] Implementar upload resumable via `ResumableUpload<Video>` com tratamento de privacidade padrão "Não listado" (`unlisted`).
   - [ ] Ação explícita "Salvar alterações no YouTube" (`videos.update`) para atualizar títulos e descrições sem sobrescrever outros metadados.
 - **Critério de Aceite**: Autenticação funcional, upload de vídeo de teste concluído com URL retornado e salvo no banco.
 
@@ -133,9 +133,9 @@ flowchart TD
   - [ ] Serviço de fila singleton: processamento estritamente sequencial (1 upload por vez na v1).
   - [ ] Transições de estado da fila persistidas imediatamente no SQLite.
   - [ ] Implementação de Throttling de velocidade de upload (limitador de taxa de envio de bytes em streaming).
-  - [ ] Retomada de uploads interrompidos (gravação de `UploadUri` do resumable upload para retomar do byte exato).
+  - [x] Retomada de uploads interrompidos (gravação de `UploadUri` do resumable upload para retomar do byte exato).
   - [ ] Reconciliação preventiva para evitar reenvio de vídeo já inserido.
-  - [ ] Comandos de UI para pausar, retomar, reordenar, remover da fila e retry manual.
+  - [x] Comandos de UI para pausar, retomar, reordenar, remover da fila e retry manual.
 - **Critério de Aceite**: Simulação de crash ou encerramento no meio do envio; após reiniciar, a fila retoma o upload de onde parou.
 
 ---

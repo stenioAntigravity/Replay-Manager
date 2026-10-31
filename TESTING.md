@@ -100,3 +100,26 @@ A cobertura Ã© orientada a:
 - [ ] `YouTubeUploaderTests`: Upload resumable e gerenciamento de cotas/tokens (Fase 6).
 - [ ] `UploadQueueServiceTests`: Fila sequencial, persistÃªncia de checkpoints e throttling (Fase 7).
 - [ ] `SqliteBackupEngineTests`: CriaÃ§Ã£o de clone atÃ´mico do banco ativo em tempo de execuÃ§Ã£o (Fase 8).
+
+| T061 | 2026-10-31 | YouTube / Title | `FormatTitle_WhenFileNameContainsPubgTimestamp_ExtractsDateCorrectly` | **PASS** | Extração de data do nome do arquivo com separadores de ponto. |
+| T062 | 2026-10-31 | YouTube / Title | `FormatTitle_WhenFileNameHasDashSeparators_ExtractsDateCorrectly` | **PASS** | Extração de data do nome com separadores traço. |
+| T063 | 2026-10-31 | YouTube / Title | `FormatTitle_WhenNoTimestampInFileName_UsesRecordedAtUtc` | **PASS** | Fallback para data de gravação UTC formatada em hora local. |
+| T064 | 2026-10-31 | YouTube / Template | `RenderDescription_ReplacesAllSupportedVariables` | **PASS** | Substituição correta de todas as variáveis no template de descrição. |
+| T065 | 2026-10-31 | YouTube / Template | `RenderDescription_EmptyTemplate_ReturnsEmptyString` | **PASS** | Template vazio retorna string vazia. |
+| T066 | 2026-10-31 | Security / DPAPI | `SaveSecretAsync_AndReadSecretAsync_EncryptsAndDecryptsSuccessfully` | **PASS** | Criptografia com DPAPI e validação de arquivo binário protegido no disco. |
+| T067 | 2026-10-31 | Security / DPAPI | `DeleteSecretAsync_RemovesFileFromDisk` | **PASS** | Remoção de credenciais do disco. |
+| T068 | 2026-10-31 | YouTube / Uploader | `UploadVideoAsync_ReturnsFailed_WhenFileMissing` | **PASS** | Retorno gracioso de falha caso o arquivo não exista no disco. |
+| T069 | 2026-10-31 | YouTube / Uploader | `UploadVideoAsync_ReturnsFailed_WhenUnauthenticated` | **PASS** | Bloqueio de upload quando não há credencial do YouTube salva. |
+| T070 | 2026-10-31 | Upload / Processor | `ProcessQueueAsync_WhenQueueEmpty_ExitsGracefully` | **PASS** | Fila vazia finaliza processamento sem invocar uploader. |
+| T071 | 2026-10-31 | Upload / Processor | `ProcessQueueAsync_WhenUploadSucceeds_UpdatesQueueItemToCompleted` | **PASS** | Item processado marcado como Completed e ID do YouTube salvo. |
+| T072 | 2026-10-31 | Upload / Processor | `ProcessQueueAsync_WhenUploadFails_UpdatesQueueItemToFailed` | **PASS** | Falha de upload salva mensagem de erro e marca status como Failed. |
+
+**Total de Testes da Fase 6**: 81 executados, 81 aprovados (100% de sucesso).
+
+| T073 | 2026-10-31 | Upload / Queue | `EnqueueVideoAsync_WhenVideoExists_CreatesAndPersistsQueueItem` | **PASS** | Enfileiramento de vídeo com definição correta de prioridade e persistência. |
+| T074 | 2026-10-31 | Upload / Queue | `PauseItemAsync_WhenItemExists_UpdatesStatusToPaused` | **PASS** | Transição para estado Paused persistida no SQLite. |
+| T075 | 2026-10-31 | Upload / Queue | `ResumeItemAsync_WhenPaused_UpdatesStatusToQueued` | **PASS** | Retomada de item pausado para a fila. |
+| T076 | 2026-10-31 | Upload / Queue | `CancelItemAsync_RemovesItemFromQueue_AndResetsVideoStatus` | **PASS** | Cancelamento remove da fila e restaura status do vídeo para None. |
+| T077 | 2026-10-31 | Upload / Throttle | `ThrottledStream_EnforcesMaxBytesPerSecond` | **PASS** | Limitador de taxa em bytes por segundo aplicado corretamente em streaming. |
+
+**Total de Testes da Fase 7**: 86 executados, 86 aprovados (100% de sucesso).

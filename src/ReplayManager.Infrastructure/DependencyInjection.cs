@@ -1,14 +1,22 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using ReplayManager.Application.Contracts.FileSystem;
+using ReplayManager.Application.Contracts.Filters;
 using ReplayManager.Application.Contracts.Ingestion;
 using ReplayManager.Application.Contracts.Media;
 using ReplayManager.Application.Contracts.Persistence;
+using ReplayManager.Application.Contracts.Upload;
+using ReplayManager.Application.Contracts.YouTube;
 using ReplayManager.Application.Services;
+using ReplayManager.Application.Services.Upload;
+using ReplayManager.Infrastructure.Background;
 using ReplayManager.Infrastructure.Data;
 using ReplayManager.Infrastructure.FileSystem;
 using ReplayManager.Infrastructure.FFmpeg;
 using ReplayManager.Infrastructure.Repositories;
+using ReplayManager.Infrastructure.Security;
+using ReplayManager.Infrastructure.YouTube;
 
 namespace ReplayManager.Infrastructure;
 
@@ -54,8 +62,25 @@ public static class DependencyInjection
 
         services.AddSingleton<IMediaMetadataExtractor, FFprobeMetadataExtractor>();
         services.AddSingleton<IThumbnailGenerator, FFmpegThumbnailGenerator>();
-        services.AddSingleton<ReplayManager.Application.Contracts.Filters.IFilterEvaluator, ReplayManager.Application.Services.FilterEvaluator>();
+        services.AddSingleton<IFilterEvaluator, FilterEvaluator>();
         services.AddScoped<IVideoMediaProcessor, VideoMediaProcessor>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddInfrastructureYouTube(this IServiceCollection services)
+    {
+        services.AddSingleton<DpapiCredentialStorage>();
+        services.AddSingleton<ITitleFormatter, TitleFormatter>();
+        services.AddSingleton<IDescriptionTemplateEngine, DescriptionTemplateEngine>();
+        services.AddSingleton<YouTubeAuthService>();
+        services.AddSingleton<IYouTubeAuthService>(sp => sp.GetRequiredService<YouTubeAuthService>());
+        services.AddScoped<IYouTubeUploader, YouTubeUploader>();
+
+        // Serviços da Fila de Upload
+        services.AddSingleton<IUploadQueueService, UploadQueueService>();
+        services.AddScoped<IUploadQueueProcessor, UploadQueueProcessor>();
+        services.AddHostedService<UploadQueueBackgroundService>();
 
         return services;
     }

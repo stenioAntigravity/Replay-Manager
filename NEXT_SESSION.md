@@ -1,7 +1,7 @@
-# Next Session Guide: Replay Manager
+﻿# Next Session Guide: Replay Manager
 
 **Data de Emissão**: 2026-10-31  
-**Fase Alvo**: Fase 6 — Integração YouTube API v3
+**Fase Alvo**: Fase 8 — Backup no Google Drive
 
 ---
 
@@ -11,11 +11,15 @@
 - **Fase 2 (Concluída)**: Hasher SHA-256 em streaming 64 KB, detecção não bloqueante de término de gravação, watcher com debounce, deduplicação intra-pasta e reconciliação (ADR 007).
 - **Fase 3 (Concluída)**: Resolução de binários FFmpeg/FFprobe, extração de metadados técnicos (duração, resolução, codec, framerate), captura segura de miniatura a 15% e substituição manual.
 - **Fase 4 (Concluída)**: Interface WPF MVVM moderna Dark Theme em abas, grade virtualizada com rolagem suave, badges visuais coloridos, busca textual em tempo real, filtros de status, painel de detalhes com edição de metadados, reprodução via VLC/padrão e diálogos nativos.
-- **Fase 5 (Concluída e Validada)**:
-  - `IFilterEvaluator` e `FilterEvaluator`: avaliação determinística de critérios de corte (extensão, tamanho min/max, duração min/max, regex no nome do arquivo e inclusão de subdiretórios).
-  - Justificativa detalhada de reprovação registrada no `VideoRecord.RejectionReason`.
-  - Integração no `VideoMediaProcessor` para enfileiramento automático imediato quando `AutoUploadEnabled = true`.
-  - 69 testes automatizados aprovados (100% de sucesso).
+- **Fase 5 (Concluída)**: Motor de filtros determinístico (`IFilterEvaluator`) e auto-enfileiramento de replays aprovados.
+- **Fase 6 (Concluída)**: Integração YouTube API v3 (OAuth 2.0, DPAPI, gerador de títulos canônico PUBG, template engine de descrições e resumable uploader).
+- **Fase 7 (Concluída e Validada)**:
+  - Serviço de fila persistente `IUploadQueueService` e `UploadQueueService` com enfileiramento, pausa, retomada, cancelamento, reordenação e retry manual.
+  - Controle de taxa de transferência via `ThrottledStream` (bytes/s configurável).
+  - Processamento sequencial (1 vídeo por vez) com `UploadQueueProcessor` e persistência transacional com `UnitOfWork`.
+  - Serviço em segundo plano contínuo `UploadQueueBackgroundService`.
+  - Interface WPF dedicada `UploadQueueView.xaml` com `UploadQueueViewModel` e `UploadQueueItemViewModel` integrada em `MainWindow.xaml`.
+  - Suíte de 86 testes automatizados aprovados (100% de sucesso).
   - Compilação limpa (0 erros, 0 avisos).
 
 ---
@@ -34,37 +38,31 @@
 
 ---
 
-## 3. Qual tarefa deve ser executada em seguida (Fase 6)
-Implementar a **Integração YouTube API v3**:
-1. Pacotes NuGet necessários em `ReplayManager.Infrastructure` e `ReplayManager.Application`:
-   - `Google.Apis.YouTube.v3`
-   - `Google.Apis.Auth`
+## 3. Qual tarefa deve ser executada em seguida (Fase 8)
+Implementar o **Backup no Google Drive**:
+1. Pacotes NuGet necessários:
+   - `Google.Apis.Drive.v3` em `ReplayManager.Infrastructure`.
 2. No `ReplayManager.Application`:
    - Contratos:
-     - `IYouTubeAuthService`: autenticação OAuth 2.0 (`GoogleWebAuthorizationBroker`), consulta de perfil do canal (nome, avatar, ID), desconexão/revogação de credenciais.
-     - `ITitleFormatter`: gerador de títulos automáticos (`PUBG Replay - DD/MM/AAAA - HH:MM:SS`) extraindo timestamp do arquivo ou nome original.
-     - `IDescriptionTemplateEngine`: processador de templates de descrição com variáveis dinâmicas (`{FileName}`, `{Date}`, `{Duration}`, `{Resolution}`).
-     - `IYouTubeUploader`: upload resumable (`ResumableUpload<Video>`), atualização de progresso em tempo real e privacidade padrão "Não listado" (`unlisted`).
+     - `ISqliteBackupService`: criação de cópia atômica consistente do banco SQLite ativo em tempo de execução via `SqliteConnection.BackupDatabase` (sem interromper operações normais).
+     - `IGoogleDriveBackupService`: envio do arquivo de backup consistente para a pasta dedicada do Google Drive (ou AppData do Drive), verificação de integridade pós-cópia (`PRAGMA integrity_check`) e retenção dos últimos N backups configurável.
    - Modelos/DTOs:
-     - `YouTubeChannelProfile` (`ChannelId`, `Title`, `ThumbnailUrl`, `IsAuthenticated`).
-     - `UploadProgressEventArgs` (`BytesSent`, `TotalBytes`, `Percentage`, `Status`).
-     - `YouTubeUploadResult` (`Success`, `VideoId`, `YouTubeUrl`, `ErrorMessage`).
+     - `BackupMetadata` (`BackupFileName`, `CreatedUtc`, `FileSizeBytes`, `DriveFileId`, `IsConsistent`).
 3. No `ReplayManager.Infrastructure`:
-   - Armazenamento seguro de credenciais e tokens usando **Windows DPAPI** (`ProtectedData.Protect`).
-   - Implementação de `YouTubeAuthService` e `YouTubeUploader`.
-   - Implementação de `TitleFormatter` e `DescriptionTemplateEngine`.
-4. No `ReplayManager.Tests`:
-   - Testes unitários do formatador de títulos (`TitleFormatterTests`) cobrindo múltiplos formatos de data e nomes de replay PUBG.
-   - Testes unitários do motor de templates (`DescriptionTemplateEngineTests`) validando substituição de variáveis e tratamento de variáveis ausentes.
-   - Testes de upload com mocks de cliente YouTube.
+   - Implementação de `SqliteBackupService` e `GoogleDriveBackupService`.
+   - Reutilização da infraestrutura de credenciais autenticadas do Google OAuth.
+4. No `ReplayManager.App` (WPF):
+   - Controles visuais de backup na aba de Configurações ou aba dedicada de Nuvem/Backup.
+5. No `ReplayManager.Tests`:
+   - Testes unitários de clonagem atômica SQLite e verificação de integridade de banco de dados.
 
 ---
 
 ## 4. Quais arquivos devem ser consultados
-- `ARCHITECTURE.md` (Seção 3.5: Integração YouTube e Autenticação).
-- `PROJECT_CONTEXT.md` (Seção 2: Integração YouTube v3, DPAPI, Templates e Títulos).
-- `IMPLEMENTATION_PLAN.md` (Fase 6: Integração YouTube API v3).
-- `DECISIONS.md` (ADR 005: Armazenamento de credenciais via Windows DPAPI).
+- `ARCHITECTURE.md` (Seção 3.3: `SqliteBackupEngine` e `DriveInfra`).
+- `PROJECT_CONTEXT.md` (Seção 2: Backup no Google Drive).
+- `IMPLEMENTATION_PLAN.md` (Fase 8: Backup no Google Drive).
+- `SESSION_LOG.md` (Histórico de sessões).
 
 ---
 
@@ -75,4 +73,4 @@ $env:DOTNET_ROOT = "C:\Users\steni\AppData\Local\Microsoft\dotnet"; $env:PATH = 
 dotnet test ReplayManager.slnx
 dotnet build ReplayManager.slnx
 ```
-Garantir compilação limpa (0 erros, 0 avisos) e 100% de testes aprovados.
+Garantir compilação limpa (0 erros, 0 avisos) e 100% dos testes aprovados.

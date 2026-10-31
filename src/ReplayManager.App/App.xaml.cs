@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,15 +30,15 @@ public partial class App : System.Windows.Application
         }
 
         var dbPath = Path.Combine(appDataDir, "replaymanager.db");
-        var connectionString = $"Data Source={dbPath}";
 
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
-                // Infraestrutura de Banco de dados e Sistema de arquivos
-                services.AddInfrastructurePersistence(connectionString);
+                // Infraestrutura de Banco de dados, Sistema de arquivos e YouTube
+                services.AddInfrastructurePersistence(dbPath);
                 services.AddInfrastructureFileSystem();
                 services.AddInfrastructureFFmpeg();
+                services.AddInfrastructureYouTube();
 
                 // Serviços da UI
                 services.AddSingleton<IMediaPlayerLauncher, MediaPlayerLauncher>();
@@ -46,6 +46,7 @@ public partial class App : System.Windows.Application
 
                 // ViewModels
                 services.AddSingleton<LibraryViewModel>();
+                services.AddSingleton<UploadQueueViewModel>();
                 services.AddSingleton<MainViewModel>();
 
                 // Janelas
