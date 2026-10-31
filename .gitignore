@@ -21,3 +21,38 @@ temp/
 *.dmp
 *.dump
 
+# Compilação
+bin/
+obj/
+.vs/
+[Bb]uild/
+
+# Configurações locais
+*.user
+*.suo
+*.cache
+
+# Banco de dados local e backups
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Credenciais e segredos
+.env
+.env.*
+secrets.json
+credentials.json
+token.json
+tokens/
+
+# Logs
+logs/
+*.log
+
+# Arquivos temporários
+*.tmp
+*.temp
+prompt-prosseguir.txt
+

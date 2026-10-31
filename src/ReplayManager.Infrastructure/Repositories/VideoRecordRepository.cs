@@ -42,7 +42,6 @@ public class VideoRecordRepository : IVideoRecordRepository
     public async Task<IReadOnlyList<VideoRecord>> GetByFolderIdAsync(Guid folderId, CancellationToken cancellationToken = default)
     {
         return await _context.Videos
-            .AsNoTracking()
             .Where(v => v.MonitoredFolderId == folderId)
             .OrderByDescending(v => v.RecordedAtUtc ?? v.CreatedAtUtc)
             .ToListAsync(cancellationToken);
@@ -102,7 +101,20 @@ public class VideoRecordRepository : IVideoRecordRepository
     public Task UpdateAsync(VideoRecord videoRecord, CancellationToken cancellationToken = default)
     {
         videoRecord.UpdatedAtUtc = DateTime.UtcNow;
-        _context.Videos.Update(videoRecord);
+
+        var tracked = _context.Videos.Local.FirstOrDefault(v => v.Id == videoRecord.Id);
+        if (tracked != null)
+        {
+            if (!ReferenceEquals(tracked, videoRecord))
+            {
+                _context.Entry(tracked).CurrentValues.SetValues(videoRecord);
+            }
+        }
+        else
+        {
+            _context.Videos.Update(videoRecord);
+        }
+
         return Task.CompletedTask;
     }
 

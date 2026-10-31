@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="FluentAssertions" Version="8.11.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
@@ -24,6 +25,7 @@
     <ProjectReference Include="..\..\src\ReplayManager.Domain\ReplayManager.Domain.csproj" />
     <ProjectReference Include="..\..\src\ReplayManager.Application\ReplayManager.Application.csproj" />
     <ProjectReference Include="..\..\src\ReplayManager.Infrastructure\ReplayManager.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\ReplayManager.App\ReplayManager.App.csproj" />
   </ItemGroup>
 
 </Project>

@@ -57,7 +57,20 @@ public class MonitoredFolderRepository : IMonitoredFolderRepository
     {
         folder.Path = Path.GetFullPath(folder.Path).TrimEnd('\\', '/');
         folder.UpdatedAtUtc = DateTime.UtcNow;
-        _context.MonitoredFolders.Update(folder);
+
+        var tracked = _context.MonitoredFolders.Local.FirstOrDefault(f => f.Id == folder.Id);
+        if (tracked != null)
+        {
+            if (!ReferenceEquals(tracked, folder))
+            {
+                _context.Entry(tracked).CurrentValues.SetValues(folder);
+            }
+        }
+        else
+        {
+            _context.MonitoredFolders.Update(folder);
+        }
+
         return Task.CompletedTask;
     }
 

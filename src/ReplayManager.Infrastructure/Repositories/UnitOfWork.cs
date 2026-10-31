@@ -13,6 +13,15 @@ public class UnitOfWork : IUnitOfWork
     public IMonitoredFolderRepository MonitoredFolders { get; }
     public IUploadQueueRepository UploadQueue { get; }
 
+    public UnitOfWork(ReplayManagerDbContext context)
+        : this(
+            context,
+            new VideoRecordRepository(context),
+            new MonitoredFolderRepository(context),
+            new UploadQueueRepository(context))
+    {
+    }
+
     public UnitOfWork(
         ReplayManagerDbContext context,
         IVideoRecordRepository videos,

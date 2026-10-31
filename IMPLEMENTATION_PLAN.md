@@ -56,28 +56,28 @@ flowchart TD
 
 ---
 
-### Fase 2 — Monitoramento de Pastas e Ingestão
+### Fase 2 — Monitoramento de Pastas e Ingestão (CONCLUÍDA)
 - **Objetivo**: Gerenciar diretórios cadastrados, detectar novos vídeos e identificar término de gravações.
 - **Tarefas**:
-  - [ ] Implementar serviço de monitoramento com `FileSystemWatcher`.
-  - [ ] Desenvolver `FileStabilityChecker`: rotina assíncrona que monitora o tamanho do arquivo ao longo do tempo e tenta abrir com `FileAccess.Read` / `FileShare.None` para assegurar que o software de gravação terminou de escrever.
-  - [ ] Implementar cálculo de hash SHA-256 em streaming assíncrono.
-  - [ ] Implementar regra de deduplicação estrita: mesmo hash dentro da mesma pasta monitorada é tratado como duplicata; arquivos iguais em pastas diferentes são registrados separadamente.
-  - [ ] Implementar motor de reconciliação periódica (timer) para verificar arquivos novos ou renomeados perdidos por estouro de buffer do OS.
-  - [ ] Testes automatizados com criação assíncrona de arquivos falsos simulando gravação ativa.
-- **Critério de Aceite**: Detecção e estabilização de arquivos validadas sem falsos positivos de arquivos em gravação.
+  - [x] Implementar serviço de monitoramento com `FileSystemWatcher`.
+  - [x] Desenvolver `FileStabilityChecker`: rotina assíncrona que monitora o tamanho do arquivo ao longo do tempo e tenta abrir com `FileAccess.Read` / `FileShare.None` para assegurar que o software de gravação terminou de escrever.
+  - [x] Implementar cálculo de hash SHA-256 em streaming assíncrono.
+  - [x] Implementar regra de deduplicação estrita: mesmo hash dentro da mesma pasta monitorada é tratado como duplicata; arquivos iguais em pastas diferentes são registrados separadamente.
+  - [x] Implementar motor de reconciliação periódica para verificar arquivos novos ou renomeados perdidos por estouro de buffer do OS.
+  - [x] Testes automatizados com criação assíncrona de arquivos simulando gravação ativa, deduplicação e reconciliação.
+- **Critério de Aceite**: Detecção e estabilização de arquivos validadas sem falsos positivos de arquivos em gravação; 100% dos testes aprovados.
 
 ---
 
 ### Fase 3 — Integração FFmpeg e Miniaturas
 - **Objetivo**: Extrair propriedades técnicas de vídeo e gerar miniaturas visuais.
 - **Tarefas**:
-  - [ ] Localizar ou gerenciar binário do FFmpeg (suporte a executável local ou PATH).
-  - [ ] Implementar serviço de extração de metadados (duração em segundos, resolução width x height, bitrate, codec de vídeo).
-  - [ ] Implementar captura de thumbnail em timestamp seguro (ex: 15% da duração ou timestamp configurável) para evitar telas pretas iniciais de gravação.
-  - [ ] Armazenamento organizado das miniaturas em pasta dedicada (`AppData/Thumbnails`) com nomes baseados em hash ou ID do vídeo.
-  - [ ] Suporte à substituição manual de thumbnail pelo usuário.
-  - [ ] Testes unitários do parser de saída do FFprobe/FFmpeg.
+  - [x] Localizar ou gerenciar binário do FFmpeg (suporte a executável local ou PATH).
+  - [x] Implementar serviço de extração de metadados (duração em segundos, resolução width x height, bitrate, codec de vídeo).
+  - [x] Implementar captura de thumbnail em timestamp seguro (ex: 15% da duração ou timestamp configurável) para evitar telas pretas iniciais de gravação.
+  - [x] Armazenamento organizado das miniaturas em pasta dedicada (`AppData/Thumbnails`) com nomes baseados em hash ou ID do vídeo.
+  - [x] Suporte à substituição manual de thumbnail pelo usuário.
+  - [x] Testes unitários do parser de saída do FFprobe/FFmpeg.
 - **Critério de Aceite**: Vídeos de teste processados com duração correta e thumbnail gerada e salva no cache.
 
 ---
@@ -85,13 +85,13 @@ flowchart TD
 ### Fase 4 — Biblioteca de Vídeos e Interface WPF
 - **Objetivo**: Construir a visualização primária do usuário com alta responsividade.
 - **Tarefas**:
-  - [ ] Implementar casca visual principal (ShellWindow) com navegação fluida em abas/seções.
-  - [ ] Desenvolver `LibraryViewModel` e `LibraryView`: Grade de miniaturas virtualizada (VirtualizingWrapPanel / ListView moderno).
-  - [ ] Exibir badges de status visual nos cards (Apenas Local, Na Fila, Enviado, Local Indisponível).
-  - [ ] Implementar barra de busca em tempo real por nome/data e filtros rápidos de status.
-  - [ ] Implementar painel lateral de detalhes do vídeo selecionado.
-  - [ ] Implementar lógica de reprodução: detectar VLC instalado no registro ou diretórios comuns; caso ausente, chamar `Process.Start` para o player padrão do Windows.
-  - [ ] Identificação visual clara de arquivos apagados no disco (sem apagar os metadados do banco).
+  - [x] Implementar casca visual principal (ShellWindow) com navegação fluida em abas/seções.
+  - [x] Desenvolver `LibraryViewModel` e `LibraryView`: Grade de miniaturas virtualizada (VirtualizingWrapPanel / ListView moderno).
+  - [x] Exibir badges de status visual nos cards (Apenas Local, Na Fila, Enviado, Local Indisponível).
+  - [x] Implementar barra de busca em tempo real por nome/data e filtros rápidos de status.
+  - [x] Implementar painel lateral de detalhes do vídeo selecionado.
+  - [x] Implementar lógica de reprodução: detectar VLC instalado no registro ou diretórios comuns; caso ausente, chamar `Process.Start` para o player padrão do Windows.
+  - [x] Identificação visual clara de arquivos apagados no disco (sem apagar os metadados do banco).
 - **Critério de Aceite**: Grade navegável, responsiva com rolagem suave, busca rápida e acionamento de reprodução local funcional.
 
 ---
@@ -99,16 +99,16 @@ flowchart TD
 ### Fase 5 — Motor de Filtros e Automação PUBG
 - **Objetivo**: Permitir regras customizadas por pasta e automatizar envio para PUBG.
 - **Tarefas**:
-  - [ ] Implementar avaliador de regras de filtro `FilterEvaluator`:
+  - [x] Implementar avaliador de regras de filtro `FilterEvaluator`:
     - Extensão (.mp4, .mkv, .avi)
     - Tamanho mínimo (default 10 MB) e máximo (default 100 MB, desativável)
     - Duração mínima e máxima
     - Regex / Padrões de nome
     - Opção de incluir subpastas
-  - [ ] Registrar o motivo detalhado em caso de reprovação nos filtros.
-  - [ ] Configuração de auto-upload para pasta específica (ex: Replays do PUBG).
-  - [ ] Fluxo automático: após gravação concluída e metadados extraídos, se aprovado, enfileirar imediatamente. Se reprovado, manter na biblioteca com motivo.
-  - [ ] Testes unitários com matriz completa de combinações de filtros.
+  - [x] Registrar o motivo detalhado em caso de reprovação nos filtros.
+  - [x] Configuração de auto-upload para pasta específica (ex: Replays do PUBG).
+  - [x] Fluxo automático: após gravação concluída e metadados extraídos, se aprovado, enfileirar imediatamente. Se reprovado, manter na biblioteca com motivo.
+  - [x] Testes unitários com matriz completa de combinações de filtros.
 - **Critério de Aceite**: Arquivos fora dos limites rejeitados com motivo documentado no registro; arquivos válidos enfileirados automaticamente.
 
 ---

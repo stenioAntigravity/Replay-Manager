@@ -1,24 +1,22 @@
 # Next Session Guide: Replay Manager
 
-**Data de Emissão**: 2026-10-30
-**Fase Alvo**: Fase 2 — Monitoramento de Pastas e Ingestão
+**Data de Emissão**: 2026-10-31  
+**Fase Alvo**: Fase 6 — Integração YouTube API v3
 
 ---
 
 ## 1. O que já está pronto
-- **Fase 0 (Concluída)**:
-  - SDK .NET 10.0 (10.0.403) instalado e validado.
-  - Repositório Git configurado com branch `main`.
-  - Documentação viva de governança e arquitetura.
-  - Solução `ReplayManager.slnx` com os 5 projetos interligados.
-- **Fase 1 (Concluída e Validada)**:
-  - Entidades de domínio completas em `src/ReplayManager.Domain`.
-  - Persistência SQLite com EF Core em `src/ReplayManager.Infrastructure`.
-  - Índice único composto `(MonitoredFolderId, ContentSha256)` garantindo deduplicação intra-pasta e isolamento entre pastas distintas.
-  - Repositórios, `UnitOfWork` e injeção de dependência.
-  - Inicialização segura com WAL mode e seeding idempotente.
-  - Suíte com 9 testes automatizados com SQLite InMemory aprovados com 100% de sucesso.
-  - Compilação limpa (0 avisos, 0 erros).
+- **Fase 0 (Concluída)**: SDK .NET 10.0, Git, governança e solução modular.
+- **Fase 1 (Concluída)**: Modelagem de domínio, SQLite WAL mode, repositórios, UnitOfWork e deduplicação intra-pasta (ADR 003).
+- **Fase 2 (Concluída)**: Hasher SHA-256 em streaming 64 KB, detecção não bloqueante de término de gravação, watcher com debounce, deduplicação intra-pasta e reconciliação (ADR 007).
+- **Fase 3 (Concluída)**: Resolução de binários FFmpeg/FFprobe, extração de metadados técnicos (duração, resolução, codec, framerate), captura segura de miniatura a 15% e substituição manual.
+- **Fase 4 (Concluída)**: Interface WPF MVVM moderna Dark Theme em abas, grade virtualizada com rolagem suave, badges visuais coloridos, busca textual em tempo real, filtros de status, painel de detalhes com edição de metadados, reprodução via VLC/padrão e diálogos nativos.
+- **Fase 5 (Concluída e Validada)**:
+  - `IFilterEvaluator` e `FilterEvaluator`: avaliação determinística de critérios de corte (extensão, tamanho min/max, duração min/max, regex no nome do arquivo e inclusão de subdiretórios).
+  - Justificativa detalhada de reprovação registrada no `VideoRecord.RejectionReason`.
+  - Integração no `VideoMediaProcessor` para enfileiramento automático imediato quando `AutoUploadEnabled = true`.
+  - 69 testes automatizados aprovados (100% de sucesso).
+  - Compilação limpa (0 erros, 0 avisos).
 
 ---
 
@@ -36,33 +34,37 @@
 
 ---
 
-## 3. Qual tarefa deve ser executada em seguida (Fase 2)
-Implementar o motor de **Monitoramento de Pastas e Ingestão**:
-1. No `ReplayManager.Application`:
-   - Interfaces `IFileStabilityChecker`, `IFileWatcherService`, `IContentHasher`.
-   - Eventos de domínio / DTOs de arquivos detectados.
-2. No `ReplayManager.Infrastructure`:
-   - Implementar `FileStabilityChecker`:
-     - Polling de tamanho com intervalo de estabilidade (ex: 3 a 5 segundos sem alteração de bytes).
-     - Teste de abertura não bloqueante com `FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None)` para garantir que a gravação do OBS/PUBG terminou.
-   - Implementar `FileSystemWatcherService`:
-     - Monitoramento de eventos `Created`, `Changed`, `Renamed`.
-     - Debounce de eventos para evitar disparos repetidos.
-     - Suporte a múltiplas instâncias de pastas simultâneas.
-   - Implementar `Sha256ContentHasher`:
-     - Streaming de leitura assíncrona com `SHA256.Create()` sem carregar arquivos gigantes na memória RAM.
-   - Implementar `FolderReconciliationWorker`:
-     - Varredura periódica em background (ex: a cada 60 segundos ou configurável) para reconciliar o diretório físico com o banco SQLite, capturando arquivos que possam ter sido perdidos por estouro de buffer do `FileSystemWatcher`.
-3. No `ReplayManager.Tests`:
-   - Testes unitários para o cálculo de hash em streaming.
-   - Testes assíncronos de detecção de término de gravação simulando escrita concorrente.
+## 3. Qual tarefa deve ser executada em seguida (Fase 6)
+Implementar a **Integração YouTube API v3**:
+1. Pacotes NuGet necessários em `ReplayManager.Infrastructure` e `ReplayManager.Application`:
+   - `Google.Apis.YouTube.v3`
+   - `Google.Apis.Auth`
+2. No `ReplayManager.Application`:
+   - Contratos:
+     - `IYouTubeAuthService`: autenticação OAuth 2.0 (`GoogleWebAuthorizationBroker`), consulta de perfil do canal (nome, avatar, ID), desconexão/revogação de credenciais.
+     - `ITitleFormatter`: gerador de títulos automáticos (`PUBG Replay - DD/MM/AAAA - HH:MM:SS`) extraindo timestamp do arquivo ou nome original.
+     - `IDescriptionTemplateEngine`: processador de templates de descrição com variáveis dinâmicas (`{FileName}`, `{Date}`, `{Duration}`, `{Resolution}`).
+     - `IYouTubeUploader`: upload resumable (`ResumableUpload<Video>`), atualização de progresso em tempo real e privacidade padrão "Não listado" (`unlisted`).
+   - Modelos/DTOs:
+     - `YouTubeChannelProfile` (`ChannelId`, `Title`, `ThumbnailUrl`, `IsAuthenticated`).
+     - `UploadProgressEventArgs` (`BytesSent`, `TotalBytes`, `Percentage`, `Status`).
+     - `YouTubeUploadResult` (`Success`, `VideoId`, `YouTubeUrl`, `ErrorMessage`).
+3. No `ReplayManager.Infrastructure`:
+   - Armazenamento seguro de credenciais e tokens usando **Windows DPAPI** (`ProtectedData.Protect`).
+   - Implementação de `YouTubeAuthService` e `YouTubeUploader`.
+   - Implementação de `TitleFormatter` e `DescriptionTemplateEngine`.
+4. No `ReplayManager.Tests`:
+   - Testes unitários do formatador de títulos (`TitleFormatterTests`) cobrindo múltiplos formatos de data e nomes de replay PUBG.
+   - Testes unitários do motor de templates (`DescriptionTemplateEngineTests`) validando substituição de variáveis e tratamento de variáveis ausentes.
+   - Testes de upload com mocks de cliente YouTube.
 
 ---
 
 ## 4. Quais arquivos devem ser consultados
-- `ARCHITECTURE.md` (Seção 4.1: Diagrama de sequência de detecção e ingestão).
-- `DECISIONS.md` (ADR 003 e ADR 004 sobre estabilidade de arquivos e deduplicação).
-- `PROJECT_CONTEXT.md` (Seção 5: Monitoramento de Pastas).
+- `ARCHITECTURE.md` (Seção 3.5: Integração YouTube e Autenticação).
+- `PROJECT_CONTEXT.md` (Seção 2: Integração YouTube v3, DPAPI, Templates e Títulos).
+- `IMPLEMENTATION_PLAN.md` (Fase 6: Integração YouTube API v3).
+- `DECISIONS.md` (ADR 005: Armazenamento de credenciais via Windows DPAPI).
 
 ---
 
@@ -71,5 +73,6 @@ Executar:
 ```powershell
 $env:DOTNET_ROOT = "C:\Users\steni\AppData\Local\Microsoft\dotnet"; $env:PATH = "$env:DOTNET_ROOT;$env:PATH"
 dotnet test ReplayManager.slnx
+dotnet build ReplayManager.slnx
 ```
-Garantir que todos os testes passem com 100% de sucesso.
+Garantir compilação limpa (0 erros, 0 avisos) e 100% de testes aprovados.

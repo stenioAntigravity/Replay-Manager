@@ -1,7 +1,7 @@
 # Development Status: Replay Manager
 
-**Última Atualização**: 2026-10-30 18:53 (Fase 1 Concluída)
-**Versão Atual**: 0.2.0-alpha.1
+**Última Atualização**: 2026-10-31 02:30 (Fase 5 Concluída)  
+**Versão Atual**: 0.6.0-alpha.5
 
 ---
 
@@ -11,11 +11,11 @@
 | :--- | :--- | :--- | :--- |
 | **Fase 0** | Preparação do Ambiente e Estrutura Inicial | **Concluída** | 100% |
 | **Fase 1** | Fundação e Persistência SQLite | **Concluída** | 100% |
-| **Fase 2** | Monitoramento de Pastas e Ingestão | **Próxima** | 0% |
-| **Fase 3** | Integração FFmpeg e Miniaturas | Pendente | 0% |
-| **Fase 4** | Biblioteca de Vídeos e Interface WPF | Pendente | 0% |
-| **Fase 5** | Motor de Filtros e Automação PUBG | Pendente | 0% |
-| **Fase 6** | Integração YouTube API v3 | Pendente | 0% |
+| **Fase 2** | Monitoramento de Pastas e Ingestão | **Concluída** | 100% |
+| **Fase 3** | Integração FFmpeg e Miniaturas | **Concluída** | 100% |
+| **Fase 4** | Biblioteca de Vídeos e Interface WPF | **Concluída** | 100% |
+| **Fase 5** | Motor de Filtros e Automação PUBG | **Concluída** | 100% |
+| **Fase 6** | Integração YouTube API v3 | **Próxima** | 0% |
 | **Fase 7** | Fila Persistente e Resiliente de Upload | Pendente | 0% |
 | **Fase 8** | Backup no Google Drive | Pendente | 0% |
 | **Fase 9** | Bandeja, Inicialização e Acabamento | Pendente | 0% |
@@ -23,57 +23,62 @@
 
 ---
 
-## 2. Detalhamento do Estado Atual (Fase 1 - 100% Concluída)
+## 2. Detalhamento do Estado Atual (Fase 5 - 100% Concluída)
 
 ### Módulos Concluídos
-- [x] Modelagem das entidades e enums de Domínio em `src/ReplayManager.Domain`:
-  - `BaseEntity`
-  - `MonitoredFolder`
-  - `FolderFilterRule`
-  - `VideoRecord`
-  - `UploadQueueItem`
-  - `YouTubeAccount`
-  - `DescriptionTemplate`
-  - `AppSetting`
-  - Enums: `LocalFileStatus`, `UploadStatus`, `YouTubePrivacyStatus`, `FilterEvaluationStatus`.
-- [x] Configuração de Persistência com SQLite e EF Core 10.0.14 em `src/ReplayManager.Infrastructure`:
-  - `ReplayManagerDbContext` com Fluent API completa.
-  - **Índice Único Composto de Deduplicação**: `IX_Videos_MonitoredFolderId_ContentSha256` (deduplicação por hash estritamente restrita à mesma pasta; pastas diferentes permitem o mesmo hash).
-  - Índices para filtros rápidos: `UploadStatus`, `LocalStatus`, `FilterStatus`, `RecordedAtUtc`.
-  - Índice composto para fila sequencial: `(Status, Priority, QueuedAtUtc)`.
-  - Configuração de WAL mode, synchronous=NORMAL e foreign_keys=ON em `DatabaseInitializer`.
-  - Seeding de configurações padrão do sistema e modelo padrão de descrição.
-- [x] Contratos e Repositórios em `ReplayManager.Application` e `ReplayManager.Infrastructure`:
-  - `IVideoRecordRepository` / `VideoRecordRepository`
-  - `IMonitoredFolderRepository` / `MonitoredFolderRepository`
-  - `IUploadQueueRepository` / `UploadQueueRepository` (incluindo `ResetActiveUploadsToInterruptedAsync` para recuperação pós-queda)
-  - `IUnitOfWork` / `UnitOfWork`
-  - Extensão `AddInfrastructurePersistence` para DI.
-- [x] Resolução de ambiguidade de namespace em WPF (`System.Windows.Application`).
-- [x] Suíte de testes automatizados com SQLite In-Memory em `tests/ReplayManager.Tests/Persistence`:
-  - 9 testes implementados, 9 aprovados com 100% de sucesso.
+- [x] **Fase 1 — Fundação e Persistência SQLite**:
+  - Entidades de Domínio, SQLite WAL mode, Fluent API, repositórios, UnitOfWork e 9 testes de persistência.
+- [x] **Fase 2 — Monitoramento de Pastas e Ingestão**:
+  - `IContentHasher`, `IFileStabilityChecker`, `IFileWatcherService`, `IFolderReconciliationWorker`, `IVideoIngestionService`.
+  - Hashing em streaming 64 KB, detecção não bloqueante de estabilidade e liberação de locks de escrita, monitoramento multi-pasta com debounce, deduplicação intra-pasta e reconciliação com `LocalFileStatus.Missing`.
+  - 18 testes automatizados adicionados.
+- [x] **Fase 3 — Integração FFmpeg e Miniaturas**:
+  - `IFFmpegPathResolver`, `IMediaMetadataExtractor`, `IThumbnailGenerator`, `IVideoMediaProcessor`.
+  - Extração de duração, resolução, codecs, taxa de bits e framerates via FFprobe.
+  - Geração de thumbnails no percentual de 15% e substituição manual de miniaturas.
+  - 26 testes automatizados adicionados.
+- [x] **Fase 4 — Biblioteca de Vídeos e Interface WPF**:
+  - MVVM com CommunityToolkit, casca Dark Theme em abas, grade virtualizada, busca em tempo real, badges de status, painel de detalhes, `MediaPlayerLauncher` (VLC/padrão) e diálogos nativos.
+  - 5 testes automatizados adicionados.
+- [x] **Fase 5 — Motor de Filtros e Automação PUBG**:
+  - **Motor de Filtros Determinístico**:
+    - `IFilterEvaluator` e `FilterEvaluator` em `ReplayManager.Application`:
+      - Avaliação de extensões permitidas (`AllowedExtensions`, default `.mp4;.mkv;.avi`).
+      - Avaliação de tamanho mínimo (`MinSizeBytes`, default 10 MB) e tamanho máximo opcional (`MaxSizeBytes`, default 100 MB, toggle `IsMaxSizeEnabled`).
+      - Avaliação de duração mínima e máxima em segundos (`MinDurationSeconds`, `MaxDurationSeconds`).
+      - Validação de expressões regulares / padrão no nome do arquivo (`NamePatternRegex`).
+      - Validação de diretório raiz vs subpastas (`IncludeSubdirectories`).
+    - DTO de resultado estruturado `FilterEvaluationResult` com status enumerado e mensagem descritiva amigável.
+  - **Fluxo de Automação Integrado**:
+    - Integração de `IFilterEvaluator` no `VideoMediaProcessor`:
+      - Imediatamente após extrair metadados técnicos e gerar a miniatura, o vídeo é submetido às regras de filtro da sua pasta proprietária.
+      - O resultado é salvo no registro (`FilterStatus` e `RejectionReason`).
+      - Se a pasta monitorada possuir `AutoUploadEnabled = true` (ex: pasta de replays/destaques do PUBG) e o vídeo for aprovado, ele é automaticamente enfileirado na fila de uploads (`UploadQueueItem`) com prioridade e status `Queued`.
+  - **Injeção de Dependências**:
+    - Registro de `IFilterEvaluator` no container de injeção em `AddInfrastructureFFmpeg()`.
+  - **Suíte de Testes Automatizados**:
+    - 9 testes unitários em `FilterEvaluatorTests` cobrindo todas as permutações de regras de corte.
+    - 2 testes de integração em `VideoMediaProcessorAutomationTests` simulando o fluxo de aprovação com auto-enfileiramento e reprovação documentada.
+    - Total de 69 testes automatizados na solução (100% de sucesso).
 
 ### Módulos Em Andamento / Próxima Sessão
-- **Fase 2 — Monitoramento de Pastas e Ingestão**:
-  - Implementar o serviço de monitoramento com `FileSystemWatcher`.
-  - Desenvolver o `FileStabilityInspector` para verificar estabilidade de tamanho e ausência de lock de gravação.
-  - Implementar cálculo de hash SHA-256 em streaming.
-  - Implementar motor de reconciliação periódica de diretórios (timer).
+- **Fase 6 — Integração YouTube API v3**:
+  - Autenticação OAuth 2.0 com `GoogleWebAuthorizationBroker` e armazenamento seguro de tokens via Windows DPAPI.
+  - Gerador de títulos automáticos (`PUBG Replay - DD/MM/AAAA - HH:MM:SS`) e templates de descrição dinâmicos.
+  - Resumable upload de vídeo para YouTube com privacidade padrão "Não listado" (`unlisted`).
 
 ---
 
 ## 3. Problemas Conhecidos e Mitigações
 
-1. **Ambiguidade de namespace `Application` em WPF**: O namespace `ReplayManager.Application` colidiu com `System.Windows.Application` em `App.xaml.cs`.
-   - *Status*: Resolvido tipando explicitamente como `System.Windows.Application`.
-2. **Crash/queda de energia com uploads em andamento**:
-   - *Mitigação*: Implementado método `ResetActiveUploadsToInterruptedAsync()` no `UploadQueueRepository`, executado na inicialização para recuperar itens deixados em `Uploading`/`Preparing`.
+1. **Subpastas não autorizadas**: O `FilterEvaluator` compara o caminho canônico do diretório do arquivo com o diretório base da pasta cadastrada, rejeitando subdiretórios se `IncludeSubdirectories = false`.
+2. **Regex inválido informado pelo usuário**: Capturado com `try/catch (ArgumentException)` no avaliador para evitar interrupção do pipeline de processamento de mídia.
 
 ---
 
 ## 4. Última Etapa Validada
-- `dotnet test ReplayManager.slnx`: 9 testes executados, 9 aprovados, 0 falhas.
+- `dotnet test ReplayManager.slnx`: 69 testes executados, 69 aprovados, 0 falhas (100% de sucesso).
 - `dotnet build ReplayManager.slnx`: 0 erros, 0 avisos.
 
 ## 5. Próxima Tarefa Exata
-- Iniciar a **Fase 2**: Implementar `IFileWatcherService` e `IFileStabilityChecker` na camada `Application`, com implementação concreta em `ReplayManager.Infrastructure/FileSystem/` e testes com arquivos assíncronos em `ReplayManager.Tests`.
+- Iniciar a **Fase 6**: Implementar serviços de autenticação OAuth 2.0 do Google/YouTube (`IYouTubeAuthService`), proteção de tokens via Windows DPAPI, gerador de títulos automáticos PUBG e upload resumable com metadados do vídeo.
