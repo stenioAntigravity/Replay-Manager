@@ -1,0 +1,71 @@
+Ui Connection Map And Report
+Replay Manager – UI/UX Layer Mapping & Technical Report
+1. Arquivos UI relevantes
+Tipo	Caminho (relativo ao solution)
+Views (XAML)	ReplayManager.App/Views/LibraryView.xaml
+ReplayManager.App/Views/MonitoredFoldersView.xaml
+ReplayManager.App/Views/SettingsView.xaml
+ReplayManager.App/Views/UploadQueueView.xaml
+Code‑behind (XAML.cs)	ReplayManager.App/Views/LibraryView.xaml.cs
+ReplayManager.App/Views/SettingsView.xaml.cs
+ReplayManager.App/Views/UploadQueueView.xaml.cs
+ViewModels	ReplayManager.App/ViewModels/MainViewModel.cs
+ReplayManager.App/ViewModels/LibraryViewModel.cs
+ReplayManager.App/ViewModels/MonitoredFoldersViewModel.cs
+ReplayManager.App/ViewModels/SettingsViewModel.cs
+ReplayManager.App/ViewModels/UploadQueueViewModel.cs
+ReplayManager.App/ViewModels/UploadQueueItemViewModel.cs
+ReplayManager.App/ViewModels/VideoCardViewModel.cs
+Converters	ReplayManager.App/Converters/EnumToBooleanConverter.cs
+ReplayManager.App/Converters/ImagePathToBitmapConverter.cs
+Service contracts (interfaces)	ReplayManager.Application/Contracts/Backup/IGoogleDriveBackupService.cs
+ReplayManager.Application/Contracts/Backup/ISqliteBackupService.cs
+ReplayManager.Application/Contracts/Export/ILibraryExportService.cs
+ReplayManager.Application/Contracts/FileSystem/IFileWatcherService.cs
+ReplayManager.Application/Contracts/Ingestion/IVideoIngestionService.cs
+ReplayManager.Application/Contracts/SystemIntegration/IStartupRegistrationService.cs
+ReplayManager.Application/Contracts/Upload/IUploadQueueService.cs
+ReplayManager.Application/Contracts/YouTube/IYouTubeAuthService.cs
+Concrete services (infrastructure)	ReplayManager.Infrastructure/FileSystem/FileSystemWatcherService.cs
+ReplayManager.Infrastructure/Backup/GoogleDriveBackupService.cs
+ReplayManager.Infrastructure/Backup/SqliteBackupService.cs
+ReplayManager.Infrastructure/Export/LibraryExportService.cs
+2. Árvore de conexão (quem injeta quem)
+MainWindow (XAML) ──► MainViewModel (DataContext)
+│
+├─ Navigation tabs (RadioButtons) bind to MainViewModel.CurrentTab
+│   ├─ Library tab → LibraryView (XAML) DataContext = MainViewModel.Library
+│   │   └─ LibraryViewModel depends on:
+│   │        • IUnitOfWork (repository façade)
+│   │        • IMediaPlayerLauncher
+│   │        • IThumbnailGenerator
+│   │        • IDialogService
+│   ├─ UploadQueue tab → UploadQueueView (XAML) DataContext = MainViewModel.UploadQueue
+│   │   └─ UploadQueueViewModel depends on IUploadQueueService
+│   ├─ MonitoredFolders tab → (inline Grid in MainWindow) DataContext = MainViewModel.MonitoredFolders
+│   │   └─ MonitoredFoldersViewModel depends on:
+│   │        • IMonitoredFolderRepository
+│   │        • IFileWatcherService (watcher of folders)
+│   └─ Settings tab → SettingsView (XAML) DataContext = MainViewModel.Settings
+│       └─ SettingsViewModel depends on:
+│            • ISqliteBackupService
+│            • IGoogleDriveBackupService
+│            • IStartupRegistrationService
+│            • ILibraryExportService
+│            • IDialogService
+Dependências de serviços (contratos → implementação)
+IMonitoredFolderRepository → ReplayManager.Infrastructure/Repositories/MonitoredFolderRepository.cs
+IFileWatcherService → ReplayManager.Infrastructure/FileSystem/FileSystemWatcherService.cs
+IUploadQueueService → ReplayManager.Application/Services/Upload/UploadQueueService.cs
+IUnitOfWork aggregates the various repositories (VideoRecordRepository, MonitoredFolderRepository, etc.) and is resolved from ReplayManager.Infrastructure/DependencyInjection.cs.
+Dialog, media‑player and thumbnail services are UI‑specific implementations located in ReplayManager.App/Services/.
+3. Fluxo de funcionamento esperado
+Inicialização – App.xaml.cs cria o ServiceProvider (via DependencyInjection.ConfigureServices) and resolves MainViewModel. The MainWindow sets its DataContext to this instance.
+Navegação – The radio‑button commands (NavigateToCommand) in MainViewModel change CurrentTab. XAML triggers a DataTrigger that toggles the Visibility of each view.
+Carregamento assíncrono – When the user selects the Upload Queue tab, MainViewModel.NavigateTo calls UploadQueue.LoadQueueAsync(). The view model uses IUploadQueueService which internally communicates with the background service UploadQueueBackgroundService (hosted in the infrastructure layer) to fetch queued items.
+Monitored Folders – MonitoredFoldersViewModel is constructed with a repository and a IFileWatcherService. On construction it calls LoadAsync() to populate the ObservableCollection. The watcher observes file‑system events; when a folder changes it calls ReloadWatcherAsync() which invokes IReloadableWatcher.ReloadActiveFoldersAsync() to refresh the active set.
+Biblioteca – LibraryViewModel loads all video records via _unitOfWork.Videos.GetAllAsync(). Filtering, search and selection trigger property change callbacks (OnSearchTextChanged, OnCurrentFilterChanged, OnSelectedVideoChanged). UI actions (play, change thumbnail, save metadata, enqueue for upload) forward to concrete services (IMediaPlayerLauncher, IThumbnailGenerator, IDialogService, IUploadQueueService).
+Configurações & Backup – SettingsViewModel runs InitializeAsync() on tab activation. It queries IStartupRegistrationService for auto‑start, checks Google Drive authentication via IGoogleDriveBackupService.IsAuthenticatedAsync(), and populates the remote backup list. Export commands (ExportCsvAsync, ExportJsonAsync) invoke ILibraryExportService; backup commands use ISqliteBackupService and IGoogleDriveBackupService.
+Comunicação UI ↔ Service – All ViewModels expose ObservableProperty fields; the UI binds directly to them. Whenever a service updates state (e.g., UploadQueueService.ProgressUpdated), the corresponding ViewModel handler marshals the update onto the UI thread via Application.Current.Dispatcher.Invoke.
+
+Resumo – A camada de interface está fortemente desacoplada: Views bind a ViewModels; ViewModels recebem dependências via injeção de dependência (constructor injection). Os contratos (interfaces) definem o contrato de serviço, enquanto as implementações ficam em ReplayManager.Infrastructure. Esse design permite unit‑testing fácil e troca de implementação sem tocar a UI.

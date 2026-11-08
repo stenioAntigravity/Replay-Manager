@@ -1,0 +1,242 @@
+<UserControl x:Class="ReplayManager.App.Views.MonitoredFoldersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:ReplayManager.App.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="650" d:DesignWidth="1000">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <SolidColorBrush x:Key="BgDarkBrush" Color="#121212" />
+        <SolidColorBrush x:Key="CardBgBrush" Color="#1E1E1E" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#333333" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#1E88E5" />
+        <SolidColorBrush x:Key="SuccessBrush" Color="#43A047" />
+    </UserControl.Resources>
+
+    <Grid Background="{StaticResource BgDarkBrush}">
+        <Grid.RowDefinitions>
+            <!-- Cabeçalho de Controle -->
+            <RowDefinition Height="Auto" />
+            <!-- Conteúdo: Lista de Pastas e Detalhes -->
+            <RowDefinition Height="*" />
+            <!-- Barra de Status Inferior -->
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 1. Cabeçalho Superior -->
+        <Border Grid.Row="0" Background="#181818" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="20,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="📁 Pastas Monitoradas &amp; Ingestão" FontSize="18" FontWeight="Bold" Foreground="White" />
+                    <TextBlock Text="Configure diretórios locais para indexar automaticamente seus replays e monitorar novas gravações." 
+                               Foreground="#888888" FontSize="12" Margin="0,4,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Command="{Binding AddFolderCommand}"
+                            Background="#2E7D32" Foreground="White" BorderThickness="0"
+                            Padding="16,8" Cursor="Hand" FontWeight="SemiBold" Margin="0,0,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="➕ " FontSize="13" />
+                            <TextBlock Text="Adicionar Pasta" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding LoadFoldersCommand}"
+                            Background="#2D2D2D" Foreground="White" BorderBrush="{StaticResource BorderBrush}"
+                            Padding="14,8" Cursor="Hand">
+                        <TextBlock Text="🔄 Atualizar" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 2. Conteúdo Principal -->
+        <Grid Grid.Row="1">
+            <!-- Caso sem pastas cadastradas (Empty State) -->
+            <Border Background="Transparent" Padding="40" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Folders.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel MaxWidth="480" HorizontalAlignment="Center">
+                    <TextBlock Text="📂" FontSize="64" HorizontalAlignment="Center" Margin="0,0,0,16" Foreground="#666666" />
+                    <TextBlock Text="Nenhuma pasta configurada" FontSize="20" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" />
+                    <TextBlock Text="Para que o Replay Manager encontre suas gravações, selecione uma pasta no seu computador onde seus vídeos (ex: PUBG, OBS Studio, Geforce Experience) são gravados." 
+                               Foreground="#AAAAAA" FontSize="13" TextWrapping="Wrap" TextAlignment="Center" Margin="0,10,0,24" />
+                    <Button Command="{Binding AddFolderCommand}" 
+                            Background="#1E88E5" Foreground="White" BorderThickness="0"
+                            Padding="20,12" FontSize="14" FontWeight="Bold" Cursor="Hand" HorizontalAlignment="Center">
+                        <TextBlock Text="➕ Selecionar Pasta no Computador" />
+                    </Button>
+                </StackPanel>
+            </Border>
+
+            <!-- Lista de Pastas (quando existem) -->
+            <Grid Margin="20">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Folders.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+
+                <ItemsControl ItemsSource="{Binding Folders}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:FolderItemViewModel}">
+                            <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" 
+                                    CornerRadius="6" Padding="16" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Linha 1: Título, Caminho e Ações Principais -->
+                                    <Grid Grid.Row="0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="📁" FontSize="16" Margin="0,0,8,0" />
+                                                <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="White" />
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Path}" Foreground="#888888" FontSize="12" Margin="24,2,0,0" TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+
+                                        <!-- Botões de Ação Imediata -->
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <!-- Botão Verificar Agora -->
+                                            <Button Command="{Binding DataContext.ReconcileFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="#1565C0" Foreground="White" BorderThickness="0"
+                                                    Padding="12,6" Cursor="Hand" Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🔍 " FontSize="12" />
+                                                    <TextBlock Text="Verificar Agora" FontWeight="SemiBold" />
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Botão Ativar / Pausar -->
+                                            <Button Command="{Binding DataContext.ToggleActiveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="#2D2D2D" Foreground="White" BorderBrush="{StaticResource BorderBrush}"
+                                                    Padding="12,6" Cursor="Hand" Margin="0,0,8,0">
+                                                <TextBlock>
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="⏸ Pausar" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                                    <Setter Property="Text" Value="▶ Ativar" />
+                                                                    <Setter Property="Foreground" Value="#81C784" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Button>
+
+                                            <!-- Botão Remover -->
+                                            <Button Command="{Binding DataContext.DeleteFolderCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="#C62828" Foreground="White" BorderThickness="0"
+                                                    Padding="10,6" Cursor="Hand">
+                                                <TextBlock Text="🗑 Remover" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Linha 2: Configurações e Checkboxes da Pasta -->
+                                    <Border Grid.Row="1" Background="#181818" CornerRadius="4" Padding="12,8" Margin="0,12,0,0">
+                                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <!-- Checkbox Subpastas -->
+                                            <CheckBox Content="Incluir Subdiretórios" 
+                                                      IsChecked="{Binding IncludeSubdirectories, Mode=TwoWay}"
+                                                      Command="{Binding DataContext.ToggleSubdirectoriesCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      CommandParameter="{Binding}"
+                                                      Foreground="#CCCCCC" Margin="0,0,24,0" Cursor="Hand" VerticalAlignment="Center" />
+
+                                            <!-- Checkbox Auto-upload -->
+                                            <CheckBox Content="Upload Automático no YouTube (aprovados por filtros)" 
+                                                      IsChecked="{Binding AutoUploadEnabled, Mode=TwoWay}"
+                                                      Command="{Binding DataContext.ToggleAutoUploadCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      CommandParameter="{Binding}"
+                                                      Foreground="#FFD54F" Margin="0,0,24,0" Cursor="Hand" VerticalAlignment="Center" />
+
+                                            <!-- Extensões aceitas -->
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="Formatos: " Foreground="#888888" FontSize="12" />
+                                                <TextBlock Text="{Binding AllowedExtensions}" Foreground="#64B5F6" FontSize="12" FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </WrapPanel>
+                                    </Border>
+
+                                    <!-- Linha 3: Status da Última Varredura -->
+                                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+                                        <TextBlock Text="Status: " Foreground="#888888" FontSize="11" />
+                                        <TextBlock Text="{Binding IsActive, Converter={x:Null}}" FontSize="11" Margin="0,0,16,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Monitoramento Ativo em Segundo Plano" />
+                                                    <Setter Property="Foreground" Value="#81C784" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                            <Setter Property="Text" Value="Pausado" />
+                                                            <Setter Property="Foreground" Value="#E57373" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+
+                                        <TextBlock Text="Última varredura: " Foreground="#888888" FontSize="11" />
+                                        <TextBlock Text="{Binding LastScannedText}" Foreground="#AAAAAA" FontSize="11" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Grid>
+
+        <!-- 3. Barra Inferior de Status -->
+        <Border Grid.Row="2" Background="#181818" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="16,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="#888888" FontSize="12" VerticalAlignment="Center" />
+
+                <ProgressBar Grid.Column="1" IsIndeterminate="True" Width="140" Height="4"
+                             Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
+

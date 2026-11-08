@@ -1,0 +1,535 @@
+<UserControl x:Class="ReplayManager.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:ReplayManager.App.ViewModels"
+             xmlns:conv="clr-namespace:ReplayManager.App.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="750" d:DesignWidth="1100"
+             Background="#121212">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+        <conv:EnumToBooleanConverter x:Key="EnumToBoolConverter" />
+
+        <SolidColorBrush x:Key="BgDarkBrush" Color="#121212" />
+        <SolidColorBrush x:Key="CardBgBrush" Color="#1E1E1E" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#2E2E2E" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#1E88E5" />
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- Barra Superior de Título -->
+            <RowDefinition Height="Auto" />
+            <!-- Conteúdo Central: Menu Lateral de Categorias + Área de Conteúdo -->
+            <RowDefinition Height="*" />
+            <!-- Barra Inferior de Status -->
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 1. Cabeçalho Superior -->
+        <Border Grid.Row="0" Background="#181818" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="24,16">
+            <StackPanel>
+                <TextBlock Text="⚙ Configurações Gerais do Sistema" FontSize="20" FontWeight="Bold" Foreground="White" />
+                <TextBlock Text="Ajuste critérios de corte, velocidade de transferência, modelos de metadados, credenciais do YouTube e backups." 
+                           Foreground="#888888" FontSize="12" Margin="0,4,0,0" />
+            </StackPanel>
+        </Border>
+
+        <!-- 2. Conteúdo Central -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <!-- Menu Lateral de Categorias -->
+                <ColumnDefinition Width="260" />
+                <!-- Painel da Categoria Selecionada -->
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Menu Lateral (Categorias da Fase 13) -->
+            <Border Grid.Column="0" Background="#161616" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0" Padding="12,16">
+                <StackPanel>
+                    <TextBlock Text="CATEGORIAS" Foreground="#666666" FontSize="11" FontWeight="Bold" Margin="8,0,0,10" />
+
+                    <!-- Categoria 1: Filtros de Vídeos -->
+                    <RadioButton Content="🎯 Filtros de Gravações"
+                                 IsChecked="{Binding SelectedCategory, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=GeneralAndFilters}"
+                                 Command="{Binding SelectCategoryCommand}" CommandParameter="{x:Static vm:SettingsCategory.GeneralAndFilters}"
+                                 Style="{StaticResource {x:Type ToggleButton}}"
+                                 Background="Transparent" Foreground="White" BorderThickness="0" HorizontalContentAlignment="Left"
+                                 Padding="12,10" Margin="0,0,0,4" Cursor="Hand" FontSize="13" />
+
+                    <!-- Categoria 2: Upload e Velocidade -->
+                    <RadioButton Content="⚡ Rede &amp; Limite de Upload"
+                                 IsChecked="{Binding SelectedCategory, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=UploadAndSpeed}"
+                                 Command="{Binding SelectCategoryCommand}" CommandParameter="{x:Static vm:SettingsCategory.UploadAndSpeed}"
+                                 Style="{StaticResource {x:Type ToggleButton}}"
+                                 Background="Transparent" Foreground="White" BorderThickness="0" HorizontalContentAlignment="Left"
+                                 Padding="12,10" Margin="0,0,0,4" Cursor="Hand" FontSize="13" />
+
+                    <!-- Categoria 3: Templates de Descrição -->
+                    <RadioButton Content="📝 Modelos de Descrição"
+                                 IsChecked="{Binding SelectedCategory, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Templates}"
+                                 Command="{Binding SelectCategoryCommand}" CommandParameter="{x:Static vm:SettingsCategory.Templates}"
+                                 Style="{StaticResource {x:Type ToggleButton}}"
+                                 Background="Transparent" Foreground="White" BorderThickness="0" HorizontalContentAlignment="Left"
+                                 Padding="12,10" Margin="0,0,0,4" Cursor="Hand" FontSize="13" />
+
+                    <!-- Categoria 4: YouTube e Google OAuth -->
+                    <RadioButton Content="▶ Canal do YouTube &amp; OAuth"
+                                 IsChecked="{Binding SelectedCategory, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=YouTubeAccount}"
+                                 Command="{Binding SelectCategoryCommand}" CommandParameter="{x:Static vm:SettingsCategory.YouTubeAccount}"
+                                 Style="{StaticResource {x:Type ToggleButton}}"
+                                 Background="Transparent" Foreground="White" BorderThickness="0" HorizontalContentAlignment="Left"
+                                 Padding="12,10" Margin="0,0,0,4" Cursor="Hand" FontSize="13" />
+
+                    <!-- Categoria 5: Backup e Sistema -->
+                    <RadioButton Content="☁ Backup, Google Drive &amp; OS"
+                                 IsChecked="{Binding SelectedCategory, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=BackupAndSystem}"
+                                 Command="{Binding SelectCategoryCommand}" CommandParameter="{x:Static vm:SettingsCategory.BackupAndSystem}"
+                                 Style="{StaticResource {x:Type ToggleButton}}"
+                                 Background="Transparent" Foreground="White" BorderThickness="0" HorizontalContentAlignment="Left"
+                                 Padding="12,10" Margin="0,0,0,4" Cursor="Hand" FontSize="13" />
+                </StackPanel>
+            </Border>
+
+            <!-- Painel de Conteúdo da Categoria -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="24">
+                <Grid>
+                    <!-- ========================================== -->
+                    <!-- PAINEL 1: FILTROS DE GRAVAÇÕES             -->
+                    <!-- ========================================== -->
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedCategory}" Value="{x:Static vm:SettingsCategory.GeneralAndFilters}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <TextBlock Text="Filtros de Vídeos e Regras de Corte" FontSize="18" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="Defina as restrições de tamanho, extensões aceitas e duração mínima/máxima para indexação automática." Foreground="#888888" FontSize="12" Margin="0,2,0,16" />
+
+                        <!-- Seletor de Pasta Alvo -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="16" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="Selecione a Pasta para Configurar os Filtros:" Foreground="#CCCCCC" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                <ComboBox ItemsSource="{Binding FolderFilters}" SelectedItem="{Binding SelectedFolderFilter}"
+                                          DisplayMemberPath="FolderName"
+                                          Background="#2A2A2A" Foreground="White" Padding="8,6" BorderBrush="{StaticResource BorderBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Campos de Filtro da Pasta Selecionada -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="18">
+                            <StackPanel DataContext="{Binding SelectedFolderFilter}">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+
+                                <!-- Extensões Permitidas -->
+                                <TextBlock Text="Extensões de Vídeo Válidas (separadas por ponto e vírgula):" Foreground="#CCCCCC" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <TextBox Text="{Binding AllowedExtensions, UpdateSourceTrigger=PropertyChanged}" 
+                                         Background="#2A2A2A" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="8,6" Margin="0,0,0,14" />
+
+                                <!-- Tamanho Mínimo e Máximo em MB -->
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Tamanho Mínimo (MB):" Foreground="#CCCCCC" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding MinSizeMb, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Background="#2A2A2A" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="8,6" />
+                                        <TextBlock Text="Vídeos menores são ignorados (ex: gravações interrompidas de 1s)." Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <CheckBox IsChecked="{Binding IsMaxSizeEnabled}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <TextBlock Text="Tamanho Máximo (MB):" Foreground="#CCCCCC" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBox Text="{Binding MaxSizeMb, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsMaxSizeEnabled}"
+                                                 Background="#2A2A2A" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="8,6" />
+                                        <TextBlock Text="Evita indexar vídeos longos não cortados acidentalmente." Foreground="#777777" FontSize="11" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Duração em Segundos -->
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Duração Mínima (segundos - opcional):" Foreground="#CCCCCC" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding MinDurationSeconds, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
+                                                 Background="#2A2A2A" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="8,6" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Duração Máxima (segundos - opcional):" Foreground="#CCCCCC" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding MaxDurationSeconds, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" 
+                                                 Background="#2A2A2A" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="8,6" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Padrão Regex para Nomes de Arquivos -->
+                                <TextBlock Text="Expressão Regular (Regex) de Nome (opcional):" Foreground="#CCCCCC" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <TextBox Text="{Binding NamePatternRegex, UpdateSourceTrigger=PropertyChanged}" 
+                                         Background="#2A2A2A" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="8,6" Margin="0,0,0,4" />
+                                <TextBlock Text="Exemplo: ^PUBG_.* para filtrar apenas arquivos que comecem com 'PUBG_'." Foreground="#777777" FontSize="11" Margin="0,0,0,16" />
+
+                                <!-- Botão Salvar Filtros -->
+                                <Button Content="💾 Salvar Regras de Filtro da Pasta" 
+                                        Command="{Binding DataContext.SaveFilterSettingsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        Background="#1E88E5" Foreground="White" FontWeight="Bold" Padding="18,10" HorizontalAlignment="Left" Cursor="Hand" BorderThickness="0" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ========================================== -->
+                    <!-- PAINEL 2: UPLOAD & VELOCIDADE DE REDE      -->
+                    <!-- ========================================== -->
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedCategory}" Value="{x:Static vm:SettingsCategory.UploadAndSpeed}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <TextBlock Text="Transferência de Rede e Velocidade de Upload" FontSize="18" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="Configure o limitador de largura de banda ThrottledStream para não sobrecarregar sua conexão durante jogos." Foreground="#888888" FontSize="12" Margin="0,2,0,16" />
+
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="18" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="Controle de Largura de Banda (Throttling)" FontSize="15" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+
+                                <CheckBox IsChecked="{Binding IsSpeedLimitEnabled, Mode=TwoWay}" Margin="0,0,0,12">
+                                    <TextBlock Text="Limitar taxa máxima de transferência durante o upload" Foreground="White" FontWeight="SemiBold" />
+                                </CheckBox>
+
+                                <StackPanel Orientation="Horizontal" Margin="24,0,0,14" VerticalAlignment="Center">
+                                    <TextBlock Text="Velocidade Máxima: " Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                    <TextBox Text="{Binding UploadSpeedLimitKbps, UpdateSourceTrigger=PropertyChanged}" 
+                                             IsEnabled="{Binding IsSpeedLimitEnabled}"
+                                             Width="90" Background="#2A2A2A" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="6,4" TextAlignment="Center" />
+                                    <TextBlock Text=" KB/s (ex: 2048 KB/s = ~2 MB/s)" Foreground="#888888" VerticalAlignment="Center" Margin="8,0,0,0" />
+                                </StackPanel>
+
+                                <TextBlock Text="Nota: Quando desativado, o envio é realizado na velocidade máxima permitida pela sua conexão." Foreground="#777777" FontSize="11" Margin="24,0,0,16" />
+
+                                <Button Content="⚡ Aplicar Configuração de Velocidade" 
+                                        Command="{Binding ApplyUploadSpeedLimitCommand}"
+                                        Background="#2E7D32" Foreground="White" FontWeight="Bold" Padding="16,8" HorizontalAlignment="Left" Cursor="Hand" BorderThickness="0" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ========================================== -->
+                    <!-- PAINEL 3: TEMPLATES DE DESCRIÇÃO           -->
+                    <!-- ========================================== -->
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedCategory}" Value="{x:Static vm:SettingsCategory.Templates}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <TextBlock Text="Modelos de Descrição (YouTube Metadata)" FontSize="18" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="Personalize a descrição padrão que será aplicada nos envios, com variáveis dinâmicas substituídas automaticamente." Foreground="#888888" FontSize="12" Margin="0,2,0,16" />
+
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="18">
+                            <StackPanel>
+                                <TextBlock Text="Nome do Modelo:" Foreground="#CCCCCC" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <TextBox Text="{Binding TemplateName, UpdateSourceTrigger=PropertyChanged}" 
+                                         Background="#2A2A2A" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="8,6" Margin="0,0,0,14" />
+
+                                <TextBlock Text="Conteúdo do Modelo de Descrição:" Foreground="#CCCCCC" FontWeight="SemiBold" Margin="0,0,0,4" />
+                                <TextBox Text="{Binding TemplateContent, UpdateSourceTrigger=PropertyChanged}" 
+                                         AcceptsReturn="True" Height="120" VerticalScrollBarVisibility="Auto"
+                                         Background="#2A2A2A" Foreground="White" BorderBrush="{StaticResource BorderBrush}" Padding="8,6" Margin="0,0,0,8" />
+
+                                <TextBlock Text="Variáveis Dinâmicas Disponíveis: {Date}, {Time}, {Duration}, {OriginalFileName}, {FileName}, {Resolution}, {FileSize}, {FolderName}" 
+                                           Foreground="#64B5F6" FontSize="11" Margin="0,0,0,16" />
+
+                                <!-- Pré-visualização em tempo real -->
+                                <Border Background="#161616" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,16">
+                                    <StackPanel>
+                                        <TextBlock Text="Pré-visualização Dinâmica:" Foreground="#888888" FontSize="11" FontWeight="Bold" Margin="0,0,0,6" />
+                                        <TextBlock Text="{Binding TemplatePreview}" Foreground="#E0E0E0" FontSize="12" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Button Content="💾 Salvar Modelo de Descrição" 
+                                        Command="{Binding SaveTemplateCommand}"
+                                        Background="#1E88E5" Foreground="White" FontWeight="Bold" Padding="18,10" HorizontalAlignment="Left" Cursor="Hand" BorderThickness="0" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ========================================== -->
+                    <!-- PAINEL 4: CONTA YOUTUBE & OAUTH            -->
+                    <!-- ========================================== -->
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedCategory}" Value="{x:Static vm:SettingsCategory.YouTubeAccount}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <TextBlock Text="Gerenciamento da Conta e Canal do YouTube" FontSize="18" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="Conecte seu canal oficial do YouTube para uploads diretos via Google OAuth 2.0." Foreground="#888888" FontSize="12" Margin="0,2,0,16" />
+
+                        <!-- Cartão de Credenciais client_secrets.json -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="18" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="1. Credenciais OAuth (client_secrets.json)" FontSize="15" FontWeight="SemiBold" Foreground="White" />
+                                    <TextBlock Text="Baixe o arquivo de credenciais do seu projeto no Google Cloud Console e importe abaixo com proteção DPAPI." Foreground="#AAAAAA" FontSize="12" Margin="0,2,0,8" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Status das Credenciais: " Foreground="#888888" FontSize="12" />
+                                        <TextBlock FontSize="12" FontWeight="Bold">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Configurado e Criptografado (DPAPI)" />
+                                                    <Setter Property="Foreground" Value="#81C784" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasClientSecretsConfigured}" Value="False">
+                                                            <Setter Property="Text" Value="Não configurado (Necessário importar)" />
+                                                            <Setter Property="Foreground" Value="#E57373" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <Button Grid.Column="1" Content="📁 Importar client_secrets.json" 
+                                        Command="{Binding ImportClientSecretsCommand}"
+                                        Background="#37474F" Foreground="White" FontWeight="SemiBold" Padding="14,8" VerticalAlignment="Center" Cursor="Hand" BorderThickness="0" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Cartão de Conexão com o Canal -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="18">
+                            <StackPanel>
+                                <TextBlock Text="2. Canal do YouTube Vinculado" FontSize="15" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12" />
+
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Background="#111111" CornerRadius="30" Width="60" Height="60" Margin="0,0,16,0">
+                                        <TextBlock Text="▶" FontSize="24" Foreground="#E53935" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding YoutubeChannelName}" Foreground="White" FontSize="16" FontWeight="Bold" />
+                                        <TextBlock Text="{Binding YoutubeChannelId, StringFormat='ID do Canal: {0}'}" Foreground="#888888" FontSize="12" Margin="0,2,0,0" />
+                                        <TextBlock Text="{Binding IsYouTubeAuthenticated, Converter={x:Null}}" FontSize="11" Margin="0,4,0,0">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="● Conectado e Autorizado" />
+                                                    <Setter Property="Foreground" Value="#81C784" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsYouTubeAuthenticated}" Value="False">
+                                                            <Setter Property="Text" Value="○ Desconectado" />
+                                                            <Setter Property="Foreground" Value="#888888" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="🔑 Conectar Canal via Navegador" 
+                                            Command="{Binding ConnectYouTubeCommand}"
+                                            IsEnabled="{Binding IsYouTubeAuthenticated, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=False}"
+                                            Background="#E53935" Foreground="White" FontWeight="Bold" Padding="16,8" Margin="0,0,10,0" Cursor="Hand" BorderThickness="0" />
+
+                                    <Button Content="Desconectar" 
+                                            Command="{Binding DisconnectYouTubeCommand}"
+                                            IsEnabled="{Binding IsYouTubeAuthenticated}"
+                                            Background="#2D2D2D" Foreground="#CCCCCC" Padding="14,8" Cursor="Hand" BorderBrush="{StaticResource BorderBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ========================================== -->
+                    <!-- PAINEL 5: BACKUP, GOOGLE DRIVE & SISTEMA   -->
+                    <!-- ========================================== -->
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedCategory}" Value="{x:Static vm:SettingsCategory.BackupAndSystem}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+
+                        <TextBlock Text="Backups, Google Drive e Integração com Windows" FontSize="18" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="Cópia de segurança atômica do SQLite, sincronização em nuvem e exportação de dados." Foreground="#888888" FontSize="12" Margin="0,2,0,16" />
+
+                        <!-- Cartão Backup SQLite -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="18" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Cópia de Segurança SQLite (Modo Consistente)" FontSize="15" FontWeight="SemiBold" Foreground="White" />
+                                    <TextBlock Text="Utiliza a SQLite Backup API nativa para clonar o banco em tempo real sem locks." Foreground="#AAAAAA" FontSize="12" Margin="0,2,0,10" />
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Text="Último Backup: " Foreground="#888888" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding LastBackupInfo}" Foreground="#E0E0E0" />
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="Política de Retenção: " Foreground="#AAAAAA" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                        <TextBox Text="{Binding RetentionCount, UpdateSourceTrigger=PropertyChanged}" Width="45" Padding="3" Background="#2A2A2A" Foreground="White" BorderBrush="{StaticResource BorderBrush}" TextAlignment="Center" />
+                                        <TextBlock Text=" backups mais recentes no Google Drive" Foreground="#888888" VerticalAlignment="Center" Margin="6,0,0,0" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="20,0,0,0">
+                                    <Button Content="☁ Conectar Google Drive" Command="{Binding ConnectGoogleDriveCommand}" Background="#1976D2" Foreground="White" FontWeight="Bold" Padding="14,6" Cursor="Hand" BorderThickness="0" />
+                                    <Button Content="☁ Desconectar" Command="{Binding DisconnectGoogleDriveCommand}" Background="#555555" Foreground="White" FontWeight="Bold" Padding="14,6" Margin="8,0,0,0" Cursor="Hand" BorderThickness="0" Visibility="{Binding IsDriveAuthenticated, Converter={StaticResource BoolToVisConverter}}" />
+                                    <TextBlock Text="{Binding IsDriveAuthenticated, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=True}" Foreground="#81C784" FontWeight="Bold" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                    <Button Content="💾 Criar Backup Local" 
+                                            Command="{Binding CreateLocalBackupCommand}"
+                                            Background="#2E7D32" Foreground="White" FontWeight="SemiBold" Padding="14,6" Margin="0,0,0,6" Cursor="Hand" BorderThickness="0" />
+
+                                    <Button Content="☁ Backup no Google Drive" 
+                                            Command="{Binding BackupToGoogleDriveCommand}"
+                                            Background="#1976D2" Foreground="White" FontWeight="SemiBold" Padding="14,6" Cursor="Hand" BorderThickness="0" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Cartão Windows e Exportações -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="18" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Inicialização do Sistema &amp; Relatórios" FontSize="15" FontWeight="SemiBold" Foreground="White" />
+                                    <TextBlock Text="Iniciar com o Windows e exportar histórico de replays." Foreground="#AAAAAA" FontSize="12" Margin="0,2,0,10" />
+
+                                    <CheckBox IsChecked="{Binding StartWithWindows, Mode=TwoWay}" VerticalContentAlignment="Center">
+                                        <TextBlock Text="Iniciar Replay Manager com o Windows (minimizado na bandeja)" Foreground="#E0E0E0" FontSize="13" />
+                                    </CheckBox>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
+                                    <Button Content="📊 Exportar CSV" Command="{Binding ExportCsvCommand}"
+                                            Background="#455A64" Foreground="White" FontWeight="SemiBold" Padding="14,6" Margin="0,0,8,0" Cursor="Hand" BorderThickness="0" />
+
+                                    <Button Content="📄 Exportar JSON" Command="{Binding ExportJsonCommand}"
+                                            Background="#37474F" Foreground="White" FontWeight="SemiBold" Padding="14,6" Cursor="Hand" BorderThickness="0" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Lista de Backups Remotos no Drive -->
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="Backups Armazenados no Google Drive" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center" />
+                            <Button Content="🔄 Atualizar Lista" Command="{Binding RefreshRemoteBackupsCommand}" HorizontalAlignment="Right"
+                                    Background="#2A2A2A" Foreground="#CCCCCC" Padding="10,4" BorderThickness="0" Cursor="Hand" />
+                        </Grid>
+
+                        <Border Background="#181818" CornerRadius="6" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" MinHeight="100">
+                            <ListBox ItemsSource="{Binding RemoteBackups}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="10,8" BorderBrush="#252525" BorderThickness="0,0,0,1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Grid.Column="0" Text="📦" FontSize="18" VerticalAlignment="Center" Margin="0,0,10,0" />
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding FileName}" Foreground="White" FontWeight="SemiBold" FontSize="12" />
+                                                    <TextBlock Text="{Binding DriveFileId, StringFormat='Google Drive ID: {0}'}" Foreground="#888888" FontSize="11" Margin="0,2,0,0" />
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding CreatedUtc, StringFormat='Data: {0:dd/MM/yyyy HH:mm:ss} UTC'}" Foreground="#CCCCCC" FontSize="11" HorizontalAlignment="Right" />
+                                                    <TextBlock Text="{Binding FileSizeBytes, StringFormat='Tamanho: {0} bytes'}" Foreground="#888888" FontSize="10" HorizontalAlignment="Right" Margin="0,2,0,0" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- 3. Barra Inferior de Status -->
+        <Border Grid.Row="2" Background="#161616" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="16,8">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Status: " Foreground="#888888" FontWeight="SemiBold" FontSize="12" />
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#4CAF50" FontWeight="SemiBold" FontSize="12" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

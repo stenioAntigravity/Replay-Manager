@@ -1,0 +1,154 @@
+<Window x:Class="ReplayManager.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ReplayManager.App"
+        xmlns:views="clr-namespace:ReplayManager.App.Views"
+        xmlns:vm="clr-namespace:ReplayManager.App.ViewModels"
+        xmlns:conv="clr-namespace:ReplayManager.App.Converters"
+        mc:Ignorable="d"
+        Title="Replay Manager - PUBG Highlights &amp; YouTube Uploader" 
+        Height="780" Width="1200"
+        MinHeight="600" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        Background="#121212">
+
+    <Window.Resources>
+        <conv:EnumToBooleanConverter x:Key="EnumToBoolConverter" />
+
+        <Style x:Key="NavTabButtonStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#AAAAAA" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="TabBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" BorderThickness="0,0,0,3" BorderBrush="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Foreground" Value="#1E88E5" />
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#1E88E5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="MainWindowRoot">
+        <Grid.RowDefinitions>
+            <!-- Barra Superior de Navegação -->
+            <RowDefinition Height="Auto" />
+            <!-- Área de Conteúdo da Aba Atual -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Barra Superior de Navegação em Abas -->
+        <Border Grid.Row="0" Background="#181818" BorderBrush="#2A2A2A" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Identificação / Logotipo -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="20,0,30,0" VerticalAlignment="Center">
+                    <TextBlock Text="🎬" FontSize="20" VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <TextBlock Text="REPLAY MANAGER" Foreground="White" FontWeight="Bold" FontSize="15" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Abas de Navegação -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <RadioButton Content="Biblioteca" 
+                                 Style="{StaticResource NavTabButtonStyle}"
+                                 IsChecked="{Binding CurrentTab, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Library}"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="{x:Static vm:NavigationTab.Library}" />
+
+                    <RadioButton Content="Fila de Upload" 
+                                 Style="{StaticResource NavTabButtonStyle}"
+                                 IsChecked="{Binding CurrentTab, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=UploadQueue}"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="{x:Static vm:NavigationTab.UploadQueue}" />
+
+                    <RadioButton Content="Pastas Monitoradas" 
+                                 Style="{StaticResource NavTabButtonStyle}"
+                                 IsChecked="{Binding CurrentTab, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=MonitoredFolders}"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="{x:Static vm:NavigationTab.MonitoredFolders}" />
+
+                    <RadioButton Content="Configurações" 
+                                 Style="{StaticResource NavTabButtonStyle}"
+                                 IsChecked="{Binding CurrentTab, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Settings}"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="{x:Static vm:NavigationTab.Settings}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Conteúdo Principal -->
+        <Grid Grid.Row="1">
+            <!-- 1. Aba Biblioteca -->
+            <views:LibraryView DataContext="{Binding Library}">
+                <views:LibraryView.Style>
+                    <Style TargetType="views:LibraryView">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding DataContext.CurrentTab, ElementName=MainWindowRoot}" Value="{x:Static vm:NavigationTab.Library}">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </views:LibraryView.Style>
+            </views:LibraryView>
+
+            <!-- 2. Aba Fila de Upload -->
+            <views:UploadQueueView DataContext="{Binding UploadQueue}">
+                <views:UploadQueueView.Style>
+                    <Style TargetType="views:UploadQueueView">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding DataContext.CurrentTab, ElementName=MainWindowRoot}" Value="{x:Static vm:NavigationTab.UploadQueue}">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </views:UploadQueueView.Style>
+            </views:UploadQueueView>
+
+            <!-- 3. Aba Pastas Monitoradas -->
+            <views:MonitoredFoldersView DataContext="{Binding MonitoredFolders}">
+                <views:MonitoredFoldersView.Style>
+                    <Style TargetType="views:MonitoredFoldersView">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding DataContext.CurrentTab, ElementName=MainWindowRoot}" Value="{x:Static vm:NavigationTab.MonitoredFolders}">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </views:MonitoredFoldersView.Style>
+            </views:MonitoredFoldersView>
+
+            <!-- 4. Aba Configurações & Backup -->
+            <views:SettingsView DataContext="{Binding Settings}">
+                <views:SettingsView.Style>
+                    <Style TargetType="views:SettingsView">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding DataContext.CurrentTab, ElementName=MainWindowRoot}" Value="{x:Static vm:NavigationTab.Settings}">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </views:SettingsView.Style>
+            </views:SettingsView>
+        </Grid>
+    </Grid>
+</Window>

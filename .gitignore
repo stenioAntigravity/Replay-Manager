@@ -1,0 +1,83 @@
+﻿## Visual Studio / .NET / C#
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+.idea/
+.continueignore
+
+## SQLite & Temporary files
+*.db-shm
+*.db-wal
+*.log
+local_cache/
+thumbnails/
+temp/
+
+## Crash and memory dumps
+*.dmp
+*.dump
+
+# CompilaÃ§Ã£o
+bin/
+obj/
+.vs/
+[Bb]uild/
+
+# ConfiguraÃ§Ãµes locais
+*.user
+*.suo
+*.cache
+
+# Banco de dados local e backups
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Credenciais e segredos
+.env
+.env.*
+secrets.json
+credentials.json
+token.json
+tokens/
+
+# Logs
+logs/
+*.log
+
+# Arquivos temporÃ¡rios
+*.tmp
+*.temp
+prompt-prosseguir.txt
+
+'
+
+# =============================================================================
+# 3. BINÁRIOS DO FFmpeg/FFprobe (CRÍTICO - EXCEDEM LIMITES GITHUB)
+# =============================================================================
+tools/ffmpeg/ffprobe.exe
+tools/ffmpeg/ffmpeg.exe
+publish/tools/ffmpeg/*.dll
+
+# =============================================================================
+# 4. ARQUIVOS DE DISTRIBUIÇÃO PORTÁVEL (CRÍTICO - EXCEDEM LIMITES GITHUB)
+# =============================================================================
+releases/*.zip
+publish-com-tools.bat
+publish-portable.bat
+publish.ps1
+publish/
+tools/
+
+# =============================================================================
+# 9. OUTROS ARQUIVOS TEMPORÁRIOS
+# =============================================================================
+.gitignore.swp
+COMMIT_EDITMSG.swp'
